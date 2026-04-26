@@ -1,0 +1,28 @@
+{
+  "description": "fresh-session-guide 양적 게이트 — SessionStart에 state 파일 초기화, PostToolUse(Bash + git commit)에 save_count 증가",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-bash.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
