@@ -1,37 +1,186 @@
 ---
 description: |
-  개발자에게 인계 정리. 디자이너 영역(mock/, 더미 데이터) vs 개발자 영역 표기 자동 분리. 개발자용 README 자동 생성 (어디 연결 필요한지, 가짜 데이터 위치, 인계 주의사항).
+  개발자에게 인계 정리. 디자이너 영역(`mock/`·더미 데이터·`asset/`) vs 개발자 영역(실제 데이터 연결 필요 위치)을 자동 분리 표기, 개발자용 README(`HANDOFF.md`) 자동 생성 — 어디를 실제 데이터에 연결해야 하는지·가짜 데이터 위치·인계 시점 commit 해시까지 포함. 인계 직전 `quality-check` + `safe-save`를 자동으로 묶어 깔끔한 인계 시점을 남긴다.
 
   발동 예시 (사용자 자연어):
-  - "개발자한테 넘기기"
-  - "인계 정리해줘"
-  - "넘길 거 정리해줘"
-  - "개발자한테 보낼 거 만들어줘"
+  - "개발자한테 넘기기", "인계 정리해줘"
+  - "넘길 거 정리해줘", "개발자한테 보낼 거 만들어줘"
+  - "이거 마무리하고 넘기자"
 
-  사용 시점: 디자이너가 작업 마치고 개발자에게 넘기기 직전.
+  사용 시점: 디자이너가 화면 작업을 마치고 개발자에게 넘기기 직전. 작업 진행 중 저장은 `safe-save`.
 model: sonnet
 ---
 
 ## 목적
-디자이너 작업물을 개발자가 그대로 받아 실서비스에 통합하기 쉽게 자동 정리.
+디자이너 작업물을 *그대로 받아 실서비스에 통합 가능한 상태*로 정리한다. 개발자가 1분 안에 "어디를 실제 데이터에 연결해야 하는지" 파악할 수 있게 하는 것이 합격선.
 
 ## 발동 조건
-- 발동: 인계 정리 자연어
-- 발동 X: 작업 진행 중 (저장은 `safe-save`)
+
+### 발동
+- "개발자한테 넘기기"/"인계 정리"/"넘길 거 정리" 류 자연어
+- 작업 마지막 단계에서 사용자가 "마무리"·"끝났어" + 인계 의도 함께 표현
+
+### 발동 X
+- 작업 진행 중 단순 저장 → `safe-save`
+- 점검만 원할 때 → `quality-check` 직접
 
 ## 처리 흐름
-> ⚠️ Phase 5 placeholder. 본 로직은 Phase 5에서 작성.
-> 핵심:
-> 1. 디자이너 영역(`mock/`, 더미 데이터) vs 개발자 영역 분리 표기
-> 2. 개발자용 README 자동 생성 (어디 연결 필요, 가짜 데이터 위치)
-> 3. 인계 주의사항 정리
+
+### 1. 인계 직전 점검 (자동 호출)
+
+#### 1.1 `quality-check` 호출 (Task tool, Haiku)
+인계 전에 깨진 화면 안 넘어가게 — `quality-check` Skill을 먼저 돌린다(반응형·색 대비·alt·토큰 어긋남).
+
+분기:
+| `quality-check` 결과 | 동작 |
+|---|---|
+| 빨강 1개 이상 | **중단** + "이거 먼저 같이 고치고 넘길까요?" 권유 |
+| 노랑만 | 진행하되 노랑 항목을 인계 README에 *알려진 이슈* 섹션으로 포함 |
+| 모두 초록 | 그대로 진행 |
+
+#### 1.2 `auto-validate` 호출 (Task tool, Haiku)
+lint·typecheck 통과 확인. fail이면 `error-translator`로 위임 후 재검증.
+
+### 2. 영역 분리 — 디자이너 vs 개발자
+
+PRD §5 export-handoff 핵심 책임. 자동 분류:
+
+| 분류 | 위치·기준 | 인계 README 표시 |
+|---|---|---|
+| **디자이너 영역** (그대로 사용) | `components/`, `app/**/page.tsx`, `styles/`, `tailwind.config.*`, `app/globals.css`, `asset/` | "그대로 가져가셔도 돼요" |
+| **가짜 데이터** (실서비스 X) | `mock/**/*` | "여기 데이터를 실제 API/DB에 연결해주세요" |
+| **연결 지점** (개발자 작업 필요) | 컴포넌트에서 `mock/`을 `import` 하는 모든 라인 | "이 import를 실제 데이터 소스로 교체" |
+
+연결 지점은 `Grep`으로 일괄 추출:
+```
+grep -rn "from ['\"].*mock" components/ app/ src/
+```
+
+각 매치 줄을 파일·라인 번호와 함께 인계 README에 박는다.
+
+### 3. 외부 데이터 의존 컴포넌트 표기
+
+`import-existing` Skill이 만든 `CLAUDE.project.md`의 `## 외부 데이터 의존 컴포넌트` 섹션을 그대로 끌어와 인계 README에 포함. 디자이너가 `import-existing`을 안 거쳤으면(빈 디렉토리 → `new-service` 흐름) 이 섹션은 비어있을 수 있음 — 그땐 새로 스캔해 채운다.
+
+스캔 패턴:
+- `useAuth`, `useSession`, `useQuery`, `useSWR`, `useMutation` 등 데이터 훅 사용
+- 직접 `fetch()` / `axios()` 호출
+
+### 4. 인계 README 생성 (`HANDOFF.md`)
+
+루트에 `HANDOFF.md` 생성. **개발자 친화 톤** — 이 한 파일은 영어 용어 그대로 써도 됨(읽는 대상이 개발자). 단 명확성 우선.
+
+템플릿:
+
+```markdown
+# Handoff — <서비스명>
+
+> 디자이너가 만든 화면을 받아 실서비스에 통합하기 위한 안내. 생성: <YYYY-MM-DD>, commit: `<short-sha>`.
+
+## 한눈에
+- **스택**: Next.js / Tailwind / shadcn/ui (또는 추출된 스택)
+- **화면 수**: N개
+- **연결 필요 지점**: M곳
+- **알려진 이슈**: K개
+
+## 그대로 사용 가능
+- `components/**` — 재사용 컴포넌트
+- `app/**/page.tsx` — 화면 라우트
+- `tailwind.config.*`, `app/globals.css` — 디자인 토큰
+- `asset/**` — 이미지·아이콘
+
+## 실제 데이터에 연결해야 할 곳
+
+| 파일:라인 | 현재 (가짜 데이터) | 교체 대상 |
+|---|---|---|
+| `app/dashboard/page.tsx:12` | `import { users } from '@/mock/users'` | 실제 사용자 API |
+| `components/UserCard.tsx:8` | `useMockAuth()` | 프로젝트의 인증 훅 |
+
+> 위 import 경로(`@/mock/...`)를 실제 데이터 소스로 교체하면 동작합니다.
+
+## 가짜 데이터 위치
+- `mock/users.ts` — 사용자 목록 (10건)
+- `mock/products.ts` — 상품 목록 (24건)
+- `mock/auth.ts` — 가짜 로그인 사용자 (1명)
+
+각 파일에는 `// SCHEMA:` 주석으로 타입 힌트가 있습니다.
+
+## 외부 데이터 의존 컴포넌트
+- `UserAvatar` (`components/UserAvatar.tsx`) — `useAuth()` 의존, `mock/auth.ts`로 미리보기 중
+- ...
+
+## 알려진 이슈 (quality-check 노랑)
+- `components/Header.tsx` — 모바일 반응형 일부 미적용 (디자이너가 두고 넘김)
+- ...
+
+## 검증 결과 (인계 시점)
+- `npm run lint` ✅
+- `npm run typecheck` ✅
+- `quality-check` 빨강 0건, 노랑 K건
+
+## 디자이너 작업 시점 commit
+- `<short-sha>` — <commit 메시지>
+- 이 시점으로 되돌리려면 `git checkout <short-sha>`
+```
+
+### 5. `mock/` 데이터에 SCHEMA 주석 자동 박기
+
+개발자가 `mock/users.ts` 보고 *어떤 형태로 실제 API를 만들면 되는지* 추론할 수 있게, 각 mock 파일 상단에 타입 힌트 주석을 추가:
+
+```typescript
+// SCHEMA: User { id: string, name: string, email: string, avatarUrl?: string }
+// 실제 API 응답이 이 형태여야 컴포넌트가 그대로 동작합니다.
+export const users = [...]
+```
+
+추출 방법:
+- `mock/*.ts` 파일에서 export된 데이터의 첫 객체 키·값 타입을 `Read`로 분석
+- 이미 `// SCHEMA:` 주석 있으면 건드리지 않음
+
+### 6. 인계 시점 commit (`safe-save` 위임)
+
+인계는 *되돌릴 수 있어야 함*. `safe-save`로 commit 시점을 명시 기록:
+
+위임 메시지(자연어 인자로 전달):
+> 인계 정리 — `HANDOFF.md` 생성, mock 데이터에 SCHEMA 주석 추가
+
+`safe-save`가 자동으로 한국어 commit 메시지 생성 + commit. push는 사용자에게 묻는다(safe-save 기본 동작).
+
+`HANDOFF.md`에 이 commit의 short-sha를 박아 *인계 시점이 명확*해지게.
+
+### 7. 응답 가공 (호출 측 톤)
+
+응답 패턴 (성공):
+> **인계 정리** 끝났어요 — `HANDOFF.md` 한 파일에 개발자가 알아야 할 모든 게 들어있어요.
+>
+> - **그대로 가져갈 수 있는 부분**: 화면·컴포넌트·디자인 토큰
+> - **실제 데이터에 연결해야 할 곳**: M곳 (각 파일·줄 번호 표시)
+> - **가짜 데이터**: `mock/` 안 N개 파일 (실제 API 형태 힌트도 같이)
+>
+> 인계 시점도 한 시점으로 묶어뒀어요(`commit: <sha>`) — 나중에 이 상태로 다시 돌아올 수 있어요.
+>
+> 이제 `HANDOFF.md` 한번 같이 훑어볼까요?
+
+`quality-check` 빨강으로 §1.1에서 중단됐다면 진행되지 않음 — 그땐 빨강 항목 응답만.
 
 ## Subagent 위임
-- 본 Skill 자체가 Sonnet Subagent (분리·정리·README 생성)
+- **이 Skill 자체가 Sonnet Subagent로 동작** (`model: sonnet`) — 분리·정리·README 생성, 중간 난이도 (PRD §12)
+- 내부 위임:
+  - `quality-check` (Task tool, Haiku) — 인계 전 점검
+  - `auto-validate` (Task tool, Haiku) — lint/typecheck 통과 확인
+  - `safe-save` (Task tool, Haiku) — 인계 시점 commit
+  - `error-translator` (메인 가로채기) — 검증·commit 실패 시
+- 책임 분리: 이 Skill은 *문서화·정리*만 담당. 코드 수정·개발자 측 통합은 안 함.
 
 ## 응답 톤
-- 한국어, 비유, 다음 행동 1개 제안 (글로벌 원칙)
+- 디자이너에게 노출되는 응답은 한국어 + 페르소나 톤 (`designer-persona` 글로벌 원칙)
+- `HANDOFF.md` *내용*은 개발자 대상이라 영어 용어 사용 OK (읽기 정확성 우선)
+- 응답 끝 다음 행동 1개 제안:
+  - 성공: "이제 `HANDOFF.md` 한번 같이 훑어볼까요?"
+  - 빨강 발견 중단: "이거 먼저 같이 고치고 넘길까요?"
 
 ## 의존
-- 다른 Skill: `designer-persona`
-- 외부 도구: Read/Glob (분리 분석), Write (README 생성)
+- 다른 Skill: `quality-check` (인계 전 점검), `auto-validate` (검증), `safe-save` (인계 시점 commit), `import-existing` (외부 데이터 의존 컴포넌트 섹션 참조), `error-translator` (실패 시), `designer-persona` (톤)
+- 외부 도구: `Read`/`Glob`/`Grep` (분리 분석), `Write` (`HANDOFF.md`), `Edit` (`mock/` SCHEMA 주석 추가), `Bash` (`git rev-parse --short HEAD` — 인계 commit 해시)
+- 참조 파일: `CLAUDE.project.md` (외부 데이터 의존 컴포넌트 섹션)
+- 참조: PRD §5 export-handoff, §4 핵심 가치 4번 (안전한 핸드오프), CLAUDE.md §3 비파괴적 git
