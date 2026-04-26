@@ -26,6 +26,24 @@ git 추상화된 저장. 디자이너 화면에 `commit`/`push` 단어가 단독
 
 ## 처리 흐름
 
+### 0. 사이클 시작 시점 보장 (export-handoff용 안전망)
+
+`.claude/.kd-session-base` 부재면 — `/kd:디자인초기설정`/`new-service`/`import-existing`을 모두 우회하고 자연어로 바로 "저장해줘"한 흐름 — *지금 commit 직전 HEAD*를 박는다. `export-handoff`가 이번 사이클 변경분을 정확히 짚으려면 *어딘가*는 시작 시점을 박아둬야 함, 그 마지막 안전망.
+
+처리 절차:
+
+1. `test -f ./.claude/.kd-session-base` — 이미 있으면 **덮어쓰지 X** 후 다음 단계로(처음 박는 1회만 책임).
+2. 부재 시:
+   - `git rev-parse HEAD 2>/dev/null` 으로 *지금 HEAD*(= 이번 commit 직전 SHA) 추출. 저장소 아니거나 commit 0개면 스킵.
+   - `mkdir -p ./.claude`
+   - `echo "<SHA>" > ./.claude/.kd-session-base`
+3. **`.gitignore` 처리** (이미 있으면 스킵, 부재면 새로 만들어 추가):
+   - `.gitignore`에 `.claude/.kd-session-base` 한 줄이 *없으면* append (기존 줄 보존).
+   - `.gitignore` 자체가 없으면 새로 만들어 `.claude/.kd-session-base` 한 줄만 박기.
+   - `.claude/` 디렉토리 자체는 gitignore X (다른 표준 파일이 거기 있을 수 있음).
+
+이 단계는 사용자에게 노출하지 않음(메타데이터 박기) — 응답에는 등장 X.
+
 ### 1. 변경 규모 판정 (auto-validate 발동 여부)
 저장 직전 검증을 *필요할 때만* 한다 (CLAUDE.md §9):
 
@@ -74,7 +92,23 @@ git commit -m "<생성한 한국어 메시지>"
 | 발동 자연어가 "임시저장" | push X (로컬만) |
 | 원격 없음 (`git remote -v` 비어있음) | commit만, push 안내 X |
 
-push 시 `origin <current-branch>` 지정. force 류 X.
+#### push 명령 결정 (실행 직전)
+
+새 작업 흐름(브랜치)에서 첫 push면 `--set-upstream`이 없어 깨질 수 있음. 자동으로 챙긴다:
+
+1. `git rev-parse --abbrev-ref HEAD` 로 현재 브랜치명 추출 → `BRANCH`.
+2. `git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null` 로 원격 짝(upstream) 확인:
+   - **성공**(이미 짝 있음) → `git push origin $BRANCH`
+   - **실패**(짝 없음, 첫 push) → `git push -u origin $BRANCH` (자동 `-u`)
+3. force 류 X (CLAUDE.md §3 비파괴).
+
+#### 응답 가공 (첫 push로 `-u` 적용된 경우)
+
+성공 응답에 1줄 추가:
+
+> 처음 올리는 거라 이 작업 흐름을 원격과 *짝지어* 뒀어요 — 다음부턴 그냥 "올려줘"만 해도 같은 곳으로 가요.
+
+(`upstream` 단어 단독 노출 X — "원격과 짝지어"로 추상화)
 
 ### 6. 응답 가공 (호출 측 톤)
 이 Skill은 Haiku Subagent로 정형 결과를 반환하지만, 메인 호출 측에서 디자이너 톤으로 가공한다.

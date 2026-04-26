@@ -73,6 +73,8 @@ model: sonnet
 - 정의 위치: `app/globals.css`, `tailwind.config.ts`
 ```
 
+> ⚠️ 한계: `tailwind.config.*`이 동적 코드(`theme`이 함수 호출이거나 외부 파일을 합쳐 가져오는 경우)면 토큰 추출이 부분만 될 수 있어요. 그땐 `CLAUDE.project.md` 토큰 섹션을 사용자가 1회 다듬어주시면 가장 정확해요.
+
 ### 3-B. 디자인 시스템 *없음* — 만들기 권유 (메시지만)
 
 PRD §10 위험 + ROADMAP O-5: **1차에선 권유 메시지만**. 자동 생성 X.
@@ -196,6 +198,18 @@ CLAUDE.md §컴포넌트 인덱스 형식 그대로:
    - `touch ./.kd-no-prior-claude-md` 후 `Write ./CLAUDE.md`로 마커 격리 + import 한 줄만.
 
 5. **검증** — 처리 후 마커 쌍이 정확히 1쌍인지 `Read`로 확인. 0·2쌍 이상이면 응답에 경고 1줄.
+
+### 7.2 사이클 시작 시점 기록 (export-handoff용)
+
+기존 git 저장소 가정(import-existing은 빈 디렉토리 X). `export-handoff`가 *이번 사이클에 추가/변경된 파일만* 인계 README에 정리하도록 기준점 SHA를 박아둔다.
+
+처리 절차:
+
+1. `test -f ./.claude/.kd-session-base` — 이미 있으면 **덮어쓰지 X** (`/kd:디자인초기설정`이 먼저 박았으면 그 값 그대로). 처음 박는 1회만 책임.
+2. 부재 시:
+   - `mkdir -p ./.claude`
+   - `echo "$(git rev-parse HEAD)" > ./.claude/.kd-session-base` (저장소 아니면 스킵)
+3. **`.gitignore` 처리** — `/kd:디자인초기설정` §4.1과 동일(`.claude/.kd-session-base` 한 줄 자동 추가, 기존 줄 보존, `.gitignore` 자체 부재면 새로 만들기, `.claude/` 디렉토리 자체는 gitignore X).
 
 ### 8. 응답 가공 (호출 측 톤)
 

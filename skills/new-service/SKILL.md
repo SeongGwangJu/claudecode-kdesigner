@@ -182,6 +182,11 @@ placeholder가 비어 있는 채로 둬도 동작은 한다 — 디자이너가 
 2. **`preview` 호출 권유** (자동 호출 X — 사용자 확인 후)
    - 응답 끝 다음 행동: "이제 첫 화면 한번 띄워볼까요?"
    - 사용자가 "응"이면 `preview` Skill로.
+3. **사이클 시작 시점 기록** (`export-handoff`용 안전망)
+   - `auto-validate` 통과 후 `git init && git add -A && git commit -m "초기 셋업"`까지 *자체적으로* 진행했다면(셋업 끝에 첫 commit이 있다면), `git rev-parse HEAD`를 `./.claude/.kd-session-base`에 박는다.
+   - **이미 파일이 있으면 덮어쓰지 X** (`/kd:디자인초기설정`이 먼저 박았을 수 있음 — 처음 박는 1회만 책임).
+   - 자체 first commit이 *없는* 흐름(이 Skill은 git init/first commit을 자동으로 만들지 않음)이면 스킵하고 `safe-save` 첫 호출의 §0 안전망에 의존.
+   - `.gitignore` 처리는 `/kd:디자인초기설정` §4.1과 동일(`.claude/.kd-session-base` 한 줄 자동 추가, 기존 줄 보존).
 
 ### 9. 응답 가공 (호출 측 톤)
 
