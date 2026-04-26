@@ -169,6 +169,34 @@ CLAUDE.md §컴포넌트 인덱스 형식 그대로:
 이미 `CLAUDE.project.md`가 있으면 **덮어쓰지 않고**, `CLAUDE.project.md.new`로 생성한 뒤 머지 권유:
 > 이미 `CLAUDE.project.md`가 있어서 새로 만든 건 `CLAUDE.project.md.new`로 두었어요. 두 파일을 같이 보면서 어떤 부분을 합칠지 같이 정리해볼까요?
 
+### 7.1 `./CLAUDE.md` import 라인 보장 (방어적)
+
+`CLAUDE.project.md`는 비표준 이름이라 새 대화 시작 시 자동 로드 X — 자동 로드되는 `./CLAUDE.md`에 `@CLAUDE.project.md` import 한 줄을 박아둬야 새 대화에서도 디자인 토큰·컴포넌트 인덱스·페르소나 요약이 이어진다. `/kd:디자인초기설정`이 정상 흐름에서 이미 박지만, 사용자가 슬래시 없이 자연어로 `import-existing`을 바로 발동한 경우를 위한 *방어적 보장*.
+
+기존 프로젝트는 *대부분 `./CLAUDE.md`가 이미 있을 가능성*이 높다(개발자가 박아둔 코드베이스 안내 등). 따라서 *백업 정책*을 명확히 한다:
+
+처리 절차:
+
+1. **`Read ./CLAUDE.md`** — 파일 존재·내용 확인.
+
+2. **시작 마커(`<!-- kd:designer-mode:start -->`) 발견** → 스킵(`/kd:디자인초기설정`이 이미 박음).
+
+3. **마커 부재 + 파일 존재** (가장 흔한 경우):
+   - `cp ./CLAUDE.md ./CLAUDE.md.kd-backup-<YYYYMMDD-HHmm>` — *반드시 백업 먼저*. 개발자가 박아둔 내용을 잃지 않게.
+   - 끝에 빈 줄 + 마커 격리 블록 append:
+     ```
+     
+     <!-- kd:designer-mode:start -->
+     @CLAUDE.project.md
+     <!-- kd:designer-mode:end -->
+     ```
+   - 응답에 백업 경로 1줄 노출 — "원래 `CLAUDE.md`는 `./CLAUDE.md.kd-backup-...`에 보관해뒀어요".
+
+4. **파일 부재** (드문 경우 — 정말 빈 프로젝트에 가까움):
+   - `touch ./.kd-no-prior-claude-md` 후 `Write ./CLAUDE.md`로 마커 격리 + import 한 줄만.
+
+5. **검증** — 처리 후 마커 쌍이 정확히 1쌍인지 `Read`로 확인. 0·2쌍 이상이면 응답에 경고 1줄.
+
 ### 8. 응답 가공 (호출 측 톤)
 
 응답 패턴 (성공):

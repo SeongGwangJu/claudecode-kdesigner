@@ -150,6 +150,28 @@ components/           # 재사용 컴포넌트 (Next.js create 시 이미 생기
 
 placeholder가 비어 있는 채로 둬도 동작은 한다 — 디자이너가 화면 만들면서 자연스럽게 채울 수 있게 *질문하지 않고 일단 시작*.
 
+### 7.1 `./CLAUDE.md` import 라인 보장 (방어적)
+
+`CLAUDE.project.md`는 비표준 이름이라 새 대화 시작 시 자동 로드 X — 자동 로드되는 `./CLAUDE.md`에 `@CLAUDE.project.md` import 한 줄을 박아둬야 새 대화에서도 디자인 토큰·컴포넌트 인덱스·페르소나 요약이 이어진다. `/kd:디자인초기설정`이 정상 흐름에서 이미 박지만, 사용자가 슬래시 없이 자연어로 `new-service`를 바로 발동한 경우를 위한 *방어적 보장*.
+
+처리 절차:
+
+1. **`Read ./CLAUDE.md`** — 파일 존재·내용 확인.
+
+2. **시작 마커(`<!-- kd:designer-mode:start -->`) 발견** → 스킵(`/kd:디자인초기설정`이 이미 박음).
+
+3. **마커 부재** → `/kd:디자인초기설정` §2.2와 *동일한 분기*로 추가:
+   - `./CLAUDE.md` 부재: `touch ./.kd-no-prior-claude-md` 후 `Write ./CLAUDE.md`로 마커 격리 + import 한 줄만 박기.
+   - `./CLAUDE.md` 존재: `cp ./CLAUDE.md ./CLAUDE.md.kd-backup-<YYYYMMDD-HHmm>` 백업 후 끝에 마커 격리 import 라인 append.
+   - 마커 블록은 항상:
+     ```
+     <!-- kd:designer-mode:start -->
+     @CLAUDE.project.md
+     <!-- kd:designer-mode:end -->
+     ```
+
+4. **검증** — 처리 후 마커 쌍이 정확히 1쌍인지 `Read`로 확인. 0·2쌍 이상이면 응답에 경고 1줄.
+
 ### 8. 셋업 직후 검증 + 첫 화면
 
 마지막 단계로 두 가지 자동 호출:
