@@ -2,6 +2,8 @@
 
 > 한국 디자이너가 *git·터미널 지식 없이* Claude Code로 화면을 만들고 개발자에게 깔끔히 넘기는 플러그인. 자연어로 말씀만 하시면 됩니다.
 
+📖 **웹에서 보기 → [seonggwangju.github.io/k-designer](https://seonggwangju.github.io/k-designer/)** (이 README를 잘 디자인된 페이지로)
+
 ---
 
 ## 이게 뭐죠?
