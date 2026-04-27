@@ -14,12 +14,10 @@
 
 👉 **[클로드 코드 한국어 설치 가이드 (공식)](https://docs.claude.com/ko/docs/claude-code/setup)**
 
-설치 방법은 두 가지가 있어요. *둘 중 하나만* 고르시면 됩니다.
+가이드 안의 설치 명령 한 줄을 *맥의 터미널 앱* 또는 *윈도우의 PowerShell*에서 실행하시면 됩니다. 처음 한 번 *로그인*까지 끝내두면 다음부턴 자동이에요.
 
-- **(A) Claude Desktop App** — *앱처럼 더블클릭으로 켜는* 방식. 익숙한 분께 추천. [데스크탑 앱 다운로드](https://claude.com/download)에서 받고, 앱 안의 *Claude Code 패널*을 여시면 됩니다 (앱 우측 상단의 코드 아이콘으로).
-- **(B) 터미널 CLI** — 맥의 *터미널 앱*, 윈도우의 *PowerShell*에서 `claude`라고 치면 켜져요. 위 가이드 링크의 설치 명령 한 줄(`npm install -g @anthropic-ai/claude-code`)만 따라 하면 끝.
-
-어느 쪽이든 처음 한 번 *로그인*만 끝내두면 다음부턴 자동입니다.
+> ⚠️ **데스크탑 앱(`Claude Desktop App`)을 쓰고 계신가요?**
+> 데스크탑 앱 안의 클로드 코드 패널에선 *플러그인 설치 명령(`/plugin`)이 아직 작동하지 않아요* (`"/plugin isn't available in this environment"`). **이 2단계 설치만큼은 터미널을 한 번 열어** 진행해주세요. 설치가 끝나면 평소처럼 데스크탑 앱에서도 쓰실 수 있습니다.
 
 ### 2단계 — 이 플러그인 설치
 
