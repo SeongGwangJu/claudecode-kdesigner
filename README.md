@@ -14,7 +14,12 @@
 
 👉 **[클로드 코드 한국어 설치 가이드 (공식)](https://docs.claude.com/ko/docs/claude-code/setup)**
 
-설치 후 터미널(맥의 *터미널 앱*, 윈도우의 *PowerShell*)에서 `claude`를 한 번 실행해 로그인까지 끝내주세요. 처음만 한 번이면 됩니다.
+설치 방법은 두 가지가 있어요. *둘 중 하나만* 고르시면 됩니다.
+
+- **(A) Claude Desktop App** — *앱처럼 더블클릭으로 켜는* 방식. 익숙한 분께 추천. [데스크탑 앱 다운로드](https://claude.com/download)에서 받고, 앱 안의 *Claude Code 패널*을 열면 됩니다 (앱 우측 상단의 코드 아이콘 또는 `⌘⇧C`).
+- **(B) 터미널 CLI** — 맥의 *터미널 앱*, 윈도우의 *PowerShell*에서 `claude`라고 치면 켜져요. 위 가이드 링크의 설치 명령 한 줄(`npm install -g @anthropic-ai/claude-code`)만 따라 하면 끝.
+
+어느 쪽이든 처음 한 번 *로그인*만 끝내두면 다음부턴 자동입니다.
 
 ### 2단계 — 이 플러그인 설치
 
@@ -25,7 +30,41 @@
 /plugin install kdesigner@claudecode-kdesigner
 ```
 
-첫 줄이 *플러그인 카탈로그를 등록*, 둘째 줄이 *실제 설치*입니다. "잘 됐어요" 메시지가 뜨면 끝.
+첫 줄이 *플러그인 카탈로그를 등록*, 둘째 줄이 *실제 설치*입니다.
+
+#### 설치 중간에 이런 화면이 뜨면
+
+```
+> Install for you (user scope)
+  Install for all collaborators on this repository (project scope)
+  Install for you, in this repo only (local scope)
+```
+
+→ **첫 번째 항목 (`Install for you`, user scope)** 그대로 ↵Enter 눌러주세요. *내 컴퓨터 어느 폴더에서든* 디자이너 모드로 작동합니다. (회사 동료와 함께 쓸 거면 두 번째, 이 한 폴더에서만 쓸 거면 세 번째)
+
+#### 설치 중간에 이런 경고가 뜨면
+
+```
+⚠ Make sure you trust a plugin before installing...
+Will install:
+· Component summary not available for remote plugin
+```
+
+→ 정상입니다. *원격에서 가져오는 플러그인은 미리보기가 안 뜨는 게 기본*이에요. 그대로 진행하세요.
+
+#### "Permission denied (publickey)" 에러가 뜨면
+
+이 메시지가 나오면 *깃허브(`GitHub`) 인증 방식이 문제*인 거예요. 디자이너 입장에선 직접 고치기 어려우니, 곁에 있는 개발자분께 다음 한 줄을 부탁드리세요 (또는 본인이 한 번만):
+
+```bash
+git config --global url."https://github.com/".insteadOf "git@github.com:"
+```
+
+이 줄은 *깃허브(`GitHub`)에서 코드를 가져올 때 어떤 통로를 쓸지* 한 번만 알려주는 설정이에요. 한 번 박아두면 다신 안 뜹니다. 그 다음 `/plugin install kdesigner@claudecode-kdesigner`를 다시 실행하세요.
+
+#### 설치 완료 확인
+
+설치가 끝나면 화면 아래쪽에 *플러그인이 활성화됨* 같은 메시지가 뜨고 명령어 자동완성에 `/kdesigner:`로 시작하는 것들이 잡히기 시작해요.
 
 ### 3단계 — 작업 폴더로 가서 시작 의식 한 번
 
