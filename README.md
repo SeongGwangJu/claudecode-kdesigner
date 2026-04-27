@@ -59,9 +59,6 @@
 
 첫 줄이 *플러그인 카탈로그를 등록*, 둘째 줄이 *실제 설치*입니다.
 
-> 💡 **왜 굳이 긴 주소(`https://...`)인가요?**
-> 짧은 형태(`SeongGwangJu/claudecode-kdesigner`)로 입력하면 *깃허브(`GitHub`) 인증 키*를 따로 등록해두지 않은 컴퓨터에선 `Permission denied (publickey)` 에러가 떠요. 긴 주소로 쓰면 누구나 바로 받을 수 있는 통로(`https`)로 가져오기 때문에 그 문제가 안 생깁니다.
-
 #### 설치 중간에 이런 화면이 뜨면
 
 ```
@@ -177,12 +174,6 @@ Will install:
 ## 잘 안 될 때
 
 - **자연어로 말했는데 발동 안 함** — 같은 동작을 슬래시로도 부를 수 있어요. "보여줘"가 안 먹으면 `/kdesigner:디자인초기설정`이 켜져 있는지 먼저 확인하세요 (켜져 있다면 표현을 살짝 바꿔서 다시)
-- **설치 단계에서 `Permission denied (publickey)` 에러가 떴어요** — 위 2단계에서 *짧은 형태*(`SeongGwangJu/claudecode-kdesigner`)로 add하셨다면 그게 원인이에요. 다음 세 줄로 *짧은 카탈로그 제거 후 긴 주소로 다시 등록*하세요:
-  ```
-  /plugin marketplace remove claudecode-kdesigner
-  /plugin marketplace add https://github.com/SeongGwangJu/claudecode-kdesigner.git
-  /plugin install kdesigner@claudecode-kdesigner
-  ```
 - **영어 에러가 그대로 보임** — 자동 회복이 실패한 경우입니다. 화면에 같이 뜨는 *개발자에게 복사해 보내주세요* 블록을 그대로 개발자에게 전달해주세요. 본문은 한국어로 정리되어 있어요
 - **명령어가 안 보여요** — 클로드 코드 *재시작* 한 번 해보세요. 설치 직후엔 새 명령어가 잡히는 데 시간이 좀 걸리기도 합니다
 
