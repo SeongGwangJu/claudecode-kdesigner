@@ -22,13 +22,13 @@ git 추상화된 저장. 디자이너 화면에 `commit`/`push` 단어가 단독
 
 ### 발동 X
 - 검증만 원하는 경우 ("점검해줘"/"한번 돌려봐") → `auto-validate` 직접 또는 `quality-check`
-- 사용자가 "되돌려"/"취소" 명시 → `/kd:되돌리기`
+- 사용자가 "되돌려"/"취소" 명시 → `/kdesigner:되돌리기`
 
 ## 처리 흐름
 
 ### 0. 사이클 시작 시점 보장 (export-handoff용 안전망)
 
-`.claude/.kd-session-base` 부재면 — `/kd:디자인초기설정`/`new-service`/`import-existing`을 모두 우회하고 자연어로 바로 "저장해줘"한 흐름 — *지금 commit 직전 HEAD*를 박는다. `export-handoff`가 이번 사이클 변경분을 정확히 짚으려면 *어딘가*는 시작 시점을 박아둬야 함, 그 마지막 안전망.
+`.claude/.kd-session-base` 부재면 — `/kdesigner:디자인초기설정`/`new-service`/`import-existing`을 모두 우회하고 자연어로 바로 "저장해줘"한 흐름 — *지금 commit 직전 HEAD*를 박는다. `export-handoff`가 이번 사이클 변경분을 정확히 짚으려면 *어딘가*는 시작 시점을 박아둬야 함, 그 마지막 안전망.
 
 처리 절차:
 

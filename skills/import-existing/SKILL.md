@@ -18,7 +18,7 @@ model: sonnet
 
 ### 발동
 - "기존 프로젝트에서 가져오기"/"회사 레포 끼어들기"/"이미 있는 코드에 디자인" 류 자연어
-- `/kd:디자인초기설정` 직후 비어있지 않은 디렉토리 감지 시 자연 권유
+- `/kdesigner:디자인초기설정` 직후 비어있지 않은 디렉토리 감지 시 자연 권유
 - `new-service` 시작 시 §1 가드에서 기존 작업 흔적 발견 시 권유
 
 ### 발동 X
@@ -173,7 +173,7 @@ CLAUDE.md §컴포넌트 인덱스 형식 그대로:
 
 ### 7.1 `./CLAUDE.md` import 라인 보장 (방어적)
 
-`CLAUDE.project.md`는 비표준 이름이라 새 대화 시작 시 자동 로드 X — 자동 로드되는 `./CLAUDE.md`에 `@CLAUDE.project.md` import 한 줄을 박아둬야 새 대화에서도 디자인 토큰·컴포넌트 인덱스·페르소나 요약이 이어진다. `/kd:디자인초기설정`이 정상 흐름에서 이미 박지만, 사용자가 슬래시 없이 자연어로 `import-existing`을 바로 발동한 경우를 위한 *방어적 보장*.
+`CLAUDE.project.md`는 비표준 이름이라 새 대화 시작 시 자동 로드 X — 자동 로드되는 `./CLAUDE.md`에 `@CLAUDE.project.md` import 한 줄을 박아둬야 새 대화에서도 디자인 토큰·컴포넌트 인덱스·페르소나 요약이 이어진다. `/kdesigner:디자인초기설정`이 정상 흐름에서 이미 박지만, 사용자가 슬래시 없이 자연어로 `import-existing`을 바로 발동한 경우를 위한 *방어적 보장*.
 
 기존 프로젝트는 *대부분 `./CLAUDE.md`가 이미 있을 가능성*이 높다(개발자가 박아둔 코드베이스 안내 등). 따라서 *백업 정책*을 명확히 한다:
 
@@ -181,7 +181,7 @@ CLAUDE.md §컴포넌트 인덱스 형식 그대로:
 
 1. **`Read ./CLAUDE.md`** — 파일 존재·내용 확인.
 
-2. **시작 마커(`<!-- kd:designer-mode:start -->`) 발견** → 스킵(`/kd:디자인초기설정`이 이미 박음).
+2. **시작 마커(`<!-- kd:designer-mode:start -->`) 발견** → 스킵(`/kdesigner:디자인초기설정`이 이미 박음).
 
 3. **마커 부재 + 파일 존재** (가장 흔한 경우):
    - `cp ./CLAUDE.md ./CLAUDE.md.kd-backup-<YYYYMMDD-HHmm>` — *반드시 백업 먼저*. 개발자가 박아둔 내용을 잃지 않게.
@@ -205,11 +205,11 @@ CLAUDE.md §컴포넌트 인덱스 형식 그대로:
 
 처리 절차:
 
-1. `test -f ./.claude/.kd-session-base` — 이미 있으면 **덮어쓰지 X** (`/kd:디자인초기설정`이 먼저 박았으면 그 값 그대로). 처음 박는 1회만 책임.
+1. `test -f ./.claude/.kd-session-base` — 이미 있으면 **덮어쓰지 X** (`/kdesigner:디자인초기설정`이 먼저 박았으면 그 값 그대로). 처음 박는 1회만 책임.
 2. 부재 시:
    - `mkdir -p ./.claude`
    - `echo "$(git rev-parse HEAD)" > ./.claude/.kd-session-base` (저장소 아니면 스킵)
-3. **`.gitignore` 처리** — `/kd:디자인초기설정` §4.1과 동일(`.claude/.kd-session-base` 한 줄 자동 추가, 기존 줄 보존, `.gitignore` 자체 부재면 새로 만들기, `.claude/` 디렉토리 자체는 gitignore X).
+3. **`.gitignore` 처리** — `/kdesigner:디자인초기설정` §4.1과 동일(`.claude/.kd-session-base` 한 줄 자동 추가, 기존 줄 보존, `.gitignore` 자체 부재면 새로 만들기, `.claude/` 디렉토리 자체는 gitignore X).
 
 ### 8. 응답 가공 (호출 측 톤)
 

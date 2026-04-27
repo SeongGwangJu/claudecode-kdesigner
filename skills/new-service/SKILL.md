@@ -18,11 +18,11 @@ model: sonnet
 
 ### 발동
 - "새 디자인 시작"/"새로 만들고 싶어"/"처음부터 만들어줘" 류 자연어
-- `/kd:디자인초기설정` 직후 빈 디렉토리 감지 시 자연 권유
+- `/kdesigner:디자인초기설정` 직후 빈 디렉토리 감지 시 자연 권유
 
 ### 발동 X
 - 기존 코드가 이미 있는 디렉토리 (`package.json` 또는 `components/` 존재) → `import-existing` 우선
-- 슬래시 `/kd:디자인초기설정`은 *모드 켜기*만 담당 — 실제 셋업은 이 Skill
+- 슬래시 `/kdesigner:디자인초기설정`은 *모드 켜기*만 담당 — 실제 셋업은 이 Skill
 
 ## 처리 흐름
 
@@ -152,15 +152,15 @@ placeholder가 비어 있는 채로 둬도 동작은 한다 — 디자이너가 
 
 ### 7.1 `./CLAUDE.md` import 라인 보장 (방어적)
 
-`CLAUDE.project.md`는 비표준 이름이라 새 대화 시작 시 자동 로드 X — 자동 로드되는 `./CLAUDE.md`에 `@CLAUDE.project.md` import 한 줄을 박아둬야 새 대화에서도 디자인 토큰·컴포넌트 인덱스·페르소나 요약이 이어진다. `/kd:디자인초기설정`이 정상 흐름에서 이미 박지만, 사용자가 슬래시 없이 자연어로 `new-service`를 바로 발동한 경우를 위한 *방어적 보장*.
+`CLAUDE.project.md`는 비표준 이름이라 새 대화 시작 시 자동 로드 X — 자동 로드되는 `./CLAUDE.md`에 `@CLAUDE.project.md` import 한 줄을 박아둬야 새 대화에서도 디자인 토큰·컴포넌트 인덱스·페르소나 요약이 이어진다. `/kdesigner:디자인초기설정`이 정상 흐름에서 이미 박지만, 사용자가 슬래시 없이 자연어로 `new-service`를 바로 발동한 경우를 위한 *방어적 보장*.
 
 처리 절차:
 
 1. **`Read ./CLAUDE.md`** — 파일 존재·내용 확인.
 
-2. **시작 마커(`<!-- kd:designer-mode:start -->`) 발견** → 스킵(`/kd:디자인초기설정`이 이미 박음).
+2. **시작 마커(`<!-- kd:designer-mode:start -->`) 발견** → 스킵(`/kdesigner:디자인초기설정`이 이미 박음).
 
-3. **마커 부재** → `/kd:디자인초기설정` §2.2와 *동일한 분기*로 추가:
+3. **마커 부재** → `/kdesigner:디자인초기설정` §2.2와 *동일한 분기*로 추가:
    - `./CLAUDE.md` 부재: `touch ./.kd-no-prior-claude-md` 후 `Write ./CLAUDE.md`로 마커 격리 + import 한 줄만 박기.
    - `./CLAUDE.md` 존재: `cp ./CLAUDE.md ./CLAUDE.md.kd-backup-<YYYYMMDD-HHmm>` 백업 후 끝에 마커 격리 import 라인 append.
    - 마커 블록은 항상:
@@ -184,9 +184,9 @@ placeholder가 비어 있는 채로 둬도 동작은 한다 — 디자이너가 
    - 사용자가 "응"이면 `preview` Skill로.
 3. **사이클 시작 시점 기록** (`export-handoff`용 안전망)
    - `auto-validate` 통과 후 `git init && git add -A && git commit -m "초기 셋업"`까지 *자체적으로* 진행했다면(셋업 끝에 첫 commit이 있다면), `git rev-parse HEAD`를 `./.claude/.kd-session-base`에 박는다.
-   - **이미 파일이 있으면 덮어쓰지 X** (`/kd:디자인초기설정`이 먼저 박았을 수 있음 — 처음 박는 1회만 책임).
+   - **이미 파일이 있으면 덮어쓰지 X** (`/kdesigner:디자인초기설정`이 먼저 박았을 수 있음 — 처음 박는 1회만 책임).
    - 자체 first commit이 *없는* 흐름(이 Skill은 git init/first commit을 자동으로 만들지 않음)이면 스킵하고 `safe-save` 첫 호출의 §0 안전망에 의존.
-   - `.gitignore` 처리는 `/kd:디자인초기설정` §4.1과 동일(`.claude/.kd-session-base` 한 줄 자동 추가, 기존 줄 보존).
+   - `.gitignore` 처리는 `/kdesigner:디자인초기설정` §4.1과 동일(`.claude/.kd-session-base` 한 줄 자동 추가, 기존 줄 보존).
 
 ### 9. 응답 가공 (호출 측 톤)
 
