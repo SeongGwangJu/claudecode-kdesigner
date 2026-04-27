@@ -16,7 +16,7 @@
 
 설치 방법은 두 가지가 있어요. *둘 중 하나만* 고르시면 됩니다.
 
-- **(A) Claude Desktop App** — *앱처럼 더블클릭으로 켜는* 방식. 익숙한 분께 추천. [데스크탑 앱 다운로드](https://claude.com/download)에서 받고, 앱 안의 *Claude Code 패널*을 열면 됩니다 (앱 우측 상단의 코드 아이콘 또는 `⌘⇧C`).
+- **(A) Claude Desktop App** — *앱처럼 더블클릭으로 켜는* 방식. 익숙한 분께 추천. [데스크탑 앱 다운로드](https://claude.com/download)에서 받고, 앱 안의 *Claude Code 패널*을 여시면 됩니다 (앱 우측 상단의 코드 아이콘으로).
 - **(B) 터미널 CLI** — 맥의 *터미널 앱*, 윈도우의 *PowerShell*에서 `claude`라고 치면 켜져요. 위 가이드 링크의 설치 명령 한 줄(`npm install -g @anthropic-ai/claude-code`)만 따라 하면 끝.
 
 어느 쪽이든 처음 한 번 *로그인*만 끝내두면 다음부턴 자동입니다.
@@ -64,7 +64,15 @@ git config --global url."https://github.com/".insteadOf "git@github.com:"
 
 #### 설치 완료 확인
 
-설치가 끝나면 화면 아래쪽에 *플러그인이 활성화됨* 같은 메시지가 뜨고 명령어 자동완성에 `/kdesigner:`로 시작하는 것들이 잡히기 시작해요.
+설치가 성공하면 이런 메시지가 뜹니다:
+
+```
+✓ Installed kdesigner. Run '/reload-plugins' to apply.
+```
+
+→ 메시지 그대로 **`/reload-plugins`** 한 줄을 그 다음에 입력해주세요. 그래야 방금 깐 플러그인이 *바로 이 자리에서* 활성화돼요. (안 치면 클로드 코드를 한 번 껐다 켜야 잡힙니다)
+
+`/reload-plugins`까지 끝내면 명령어 자동완성에 `/kdesigner:`로 시작하는 것들이 잡히기 시작해요.
 
 ### 3단계 — 작업 폴더로 가서 시작 의식 한 번
 
