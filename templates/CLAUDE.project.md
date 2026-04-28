@@ -14,28 +14,33 @@
 
 ## 디자인 시스템
 
+<!-- kd:slot:design-philosophy -->
 ### 철학
 {{이 디자인이 추구하는 톤·결을 1~3줄}}
 
 예: "차분하고 미니멀. 둥글기는 작게, 색은 채도 낮게. 정보 우선, 장식 최소."
 
+<!-- kd:slot:project-tone -->
 ### 톤 한 단어
 {{미니멀 / 브루탈 / 에디토리얼 / 플레이풀 / 럭셔리 / 레트로 / 산업적 / 따뜻함 / ...}}
 
 > `aesthetic-guard`가 한 방향 commit 결정에 *제일 먼저 읽는* 슬롯.
 
+<!-- kd:slot:project-references -->
 ### 레퍼런스
 > 이 프로젝트가 *닮고 싶은* 화면·프로덕트 1-3개. 글로벌 디자이너 프로필이 있으면 거기서 시드되고, 이 프로젝트만의 톤이 다르면 여기 따로 적기.
 
 - {{레퍼런스 1}} — {{왜 닮고 싶은지}}
 - {{레퍼런스 2}} — {{왜 닮고 싶은지}}
 
+<!-- kd:slot:project-avoidance -->
 ### 피하고 싶은 표현 (이 프로젝트 한정)
 > 글로벌 회피와 별개로 *이 서비스에서 절대 안 쓰는 것*.
 
 - {{회피 1}}
 - {{회피 2}}
 
+<!-- kd:slot:design-tokens -->
 ### 핵심 토큰
 - **색**:
   - primary: {{#000000}}
@@ -47,6 +52,7 @@
 
 > 토큰 값이 비어 있으면 `design-system-guard` Skill이 첫 사용 시 사용자에게 묻고 채웁니다.
 
+<!-- kd:slot:tech-stack -->
 ## 사용 스택
 - **{{웹/앱}}**: {{Next.js + Tailwind + shadcn/ui + TypeScript}} 또는 {{React Native (Expo) + NativeWind}}
 - **아이콘**: {{lucide-react}}
@@ -59,6 +65,7 @@
 
 자연어 "이 이미지 추가해줘" → 자동으로 `asset/`에 저장 + 컴포넌트에서 참조.
 
+<!-- kd:slot:components -->
 ## 사용 가능한 컴포넌트
 
 > 이 섹션은 *자동 관리*됩니다. 사용자가 직접 손대지 마세요.
@@ -89,6 +96,7 @@
 
 핸드오프는 `export-handoff` Skill("개발자한테 넘기기" 발화)이 자동 정리.
 
+<!-- kd:slot:last-work -->
 ## 마지막 작업
 > 이 섹션은 `fresh-session-guide` Skill이 자동 갱신해요. 새 대화 시작 시 "이어서 작업하자"의 단서로 쓰여요.
 
