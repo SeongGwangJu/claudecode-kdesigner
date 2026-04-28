@@ -110,43 +110,24 @@ components/           # 재사용 컴포넌트 (Next.js create 시 이미 생기
 
 ### 6. `package.json` scripts 보장 (auto-validate 표준 키)
 
-`auto-validate` Skill은 `package.json` scripts를 *우선* 호출함(CLAUDE.md §9). 새로 만든 프로젝트에 표준 키가 박혀 있어야 fallback에 빠지지 않음.
+`auto-validate` Skill은 `package.json` scripts를 *우선* 호출함. 새로 만든 프로젝트에 표준 키가 박혀 있어야 fallback에 빠지지 않음.
 
-`Read` `package.json` → `Edit`로 보장:
+표준 키 정의·fallback·적용 절차는 `${CLAUDE_SKILL_DIR}/references/init-scripts-schema.md` 참조 — 셋업 시 *반드시 Read*. 단일 진실은 `plugin/SCHEMA.md` §3.
 
-```json
-{
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit"
-  }
-}
-```
-
-이미 있는 키는 건드리지 않고, **누락된 표준 키만 추가**:
-- `lint` — 없으면 `next lint` (Next) 또는 `eslint .` (그 외)
-- `typecheck` — 없으면 `tsc --noEmit`
-- `check` — 박지 않음 (선택 키, 사용자가 후에 박을 수 있음)
-
-`tsconfig.json`이 없으면 `tsc --noEmit`이 깨지므로 typecheck 박기 전 `tsconfig.json` 존재 확인 필수. 없으면 `npx tsc --init`을 먼저.
+핵심 동작:
+- `Read` `package.json` → 누락된 표준 키만 `Edit`로 추가 (이미 있는 키는 건드리지 않음)
+- `tsconfig.json` 부재 시 → `npx tsc --init` 선행 필수 (`typecheck`가 깨짐 방지)
 
 ### 7. `CLAUDE.project.md` 생성 (placeholder 채워넣기)
 
 `plugin/templates/CLAUDE.project.md` 템플릿을 기반으로 프로젝트 루트에 생성. 묻지 말고 기본 placeholder로 채운다 — 결정 피로 최소화.
 
-기본 채워넣기:
+기본 채워넣기 — 결정 피로 최소화로 *질문 없이* 자동 채움. 매핑 표·슬롯 ID는 `${CLAUDE_SKILL_DIR}/references/placeholder-defaults.md` 참조.
 
-| 필드 | 기본값 | 사용자 사후 변경 가능 |
-|---|---|---|
-| `{{서비스명}}` | 폴더 이름 (`basename "$PWD"`) | ✓ |
-| `{{서비스 목적}}` | "(아직 정해지지 않음 — 화면 만들면서 자연스럽게 채워질 거예요)" | ✓ |
-| `{{사용자층}}` | "(아직 정해지지 않음)" | ✓ |
-| `{{스택}}` | 선택한 스택 (Next.js + Tailwind + shadcn/ui 등) | — |
-| `{{디자인 시스템 토큰}}` | shadcn 기본 토큰 (color·radius·spacing 기본값 그대로) | ✓ |
-| `## 사용 가능한 컴포넌트` | shadcn으로 박은 `Button`·`Card`·`Input` 한 줄씩 | 자동 갱신 |
+핵심 동작:
+- `{{서비스명}}` ← `basename "$PWD"`
+- 그 외 placeholder ← references의 기본값 (사용자가 디자인초기설정 §3-A.1에서 미리 답한 값이 있으면 그쪽 우선)
+- 자동 관리 슬롯(`components`·`last-work` 등)은 *해당 책임 Skill*이 갱신
 
 placeholder가 비어 있는 채로 둬도 동작은 한다 — 디자이너가 화면 만들면서 자연스럽게 채울 수 있게 *질문하지 않고 일단 시작*.
 
