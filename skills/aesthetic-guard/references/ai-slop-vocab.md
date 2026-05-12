@@ -9,7 +9,7 @@
 ### 1.1 타이포
 - 흔한 폰트 단독: Inter, Roboto, Arial, Helvetica, system-ui, Open Sans, Lato
 - 무지개 그라디언트 텍스트 (특히 보라→파랑 / 분홍→보라)
-- 디자이너 프로필 명시 폰트 우선, 없으면 의도적 display + 다른 결의 body 페어링
+- 프로젝트 §디자인 시스템 폰트 토큰 우선, 없으면 의도적 display + 다른 결의 body 페어링
 
 ### 1.2 색
 - 보라(`#6366f1`/`#7c3aed` 류) 그라디언트 + 흰 배경
@@ -64,8 +64,8 @@
 ### 4.1 묻기 전 — 코드 추출 우선 (불필요한 질문 차단)
 1. `globals.css`/`tailwind.config.*` → 색·폰트·둥글기·간격 추출
 2. `components/` → 기존 스타일 결 추출 (radius·shadow·typography 어떤 결?)
-3. `~/.claude/CLAUDE.md` §디자이너 프로필 (전역 켜져 있으면)
-4. `CLAUDE.project.md` §디자인 시스템 슬롯들
+3. `CLAUDE.project.md` §디자인 시스템 슬롯들 (1순위 — 프로젝트 사실)
+4. `~/.claude/CLAUDE.md` §미학 학습의 자동 누적 슬롯 (전역 켜져 있고 누적되어 있으면, 보조)
 
 위 4단계로도 *비어있는* 차원만 디자이너에게 묻는다.
 

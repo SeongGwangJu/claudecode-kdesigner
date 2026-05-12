@@ -41,11 +41,11 @@
 
 | ID | 한국어 헤더 | 카테고리 | 빈 골격 |
 |---|---|---|---|
-| `designer-profile` | `## 디자이너 프로필 (이 사용자의 미학 정체성)` | 컨테이너 | 헤더 + 안내 인용구만 |
-| `fav-references` | `### 좋아하는 디자인 / 레퍼런스` | 답 필요 | placeholder 3줄 (`{{레퍼런스 N}} — {{왜 좋았는지}}`) |
-| `portfolio` | `### 본인 대표 작업` | 답 필요 | `{{포트폴리오 URL 또는 "공개 URL 없음"}}` |
+| `designer-profile` | `## 미학 학습 (자동 누적·디자이너 작성 불필요)` | 컨테이너 | 헤더 + 안내 인용구만 |
 | `avoidance` | `### 피하고 싶은 디자인 (자동 누적 슬롯)` | 자동 누적 | `{{사후 누적 N}}` placeholder |
 | `tone-extracted` | `### 평소 톤 (자동 추출 슬롯)` | 자동 추출 | 톤/폰트/공간감 placeholder 3줄 |
+
+> 라운드 2 후속(2026-05-12) — `fav-references`(레퍼런스 URL)·`portfolio`(포트폴리오 URL) 슬롯 *완전 제거*. 디자이너에게 셋업 의식에서 URL 입력을 요구하지 않는다. `aesthetic-guard`는 본문 *고정 클리셰 회피*로 기본 동작하고, 자동 누적 슬롯 2개에서 결을 학습.
 
 진실 위치: `plugin/templates/CLAUDE.user.md`.
 
