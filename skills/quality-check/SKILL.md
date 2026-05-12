@@ -8,7 +8,7 @@ description: |
   - "넘기기 전에 한번 봐줘"
 
   사용 시점: 화면 만들고 인계 전, 혹은 의심 가는 부분을 디자이너가 확인하고 싶을 때.
-model: haiku
+model: inherit  # CLAUDE.md §11 — 디자이너 친화 리포트 톤·발견 분류가 디자인 컨텍스트 의존 (11-G reframe, 기존 haiku)
 ---
 
 ## 목적
@@ -87,9 +87,9 @@ model: haiku
 | 모두 초록 | "이제 개발자한테 넘길 정리 시작할까요?" |
 
 ## Subagent 위임
-- **이 Skill 자체가 Haiku Subagent로 동작** (`model: haiku`) — 정적 스캔 + 정형 리포트
+- **이 Skill 자체는 메인 모델 컨텍스트** (`model: inherit` — 11-G reframe, CLAUDE.md §11). 리포트 톤·심각도 분류·다음 행동 분기가 디자인 컨텍스트 의존이라 다운그레이드 X. 정적 스캔(Read/Grep/Glob)은 메인이 직접
 - 토큰 어긋남 발견 시 *수정 분기*는 `design-system-guard`로 위임 (이 Skill은 발견·보고만)
-- PRD §12 라우팅 표 일치 (체크리스트 실행, 룩업 위주)
+- PRD §12 라우팅 표 일치
 
 ## 응답 톤
 - 한국어, 디자이너 친화 메시지 ("모바일에서 글씨 잘릴 수 있어요" 식)

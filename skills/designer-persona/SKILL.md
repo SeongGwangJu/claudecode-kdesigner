@@ -34,17 +34,34 @@ model: inherit
 ### 1. 에러·실패 톤 가드
 
 - 영어 스택트레이스 그대로 본문 노출 X — 코드 블록(```) 안에 격리
-- 자동 회복 시도가 먼저 (의존성 누락 → 자동 설치, 포트 충돌 → 다른 포트, 일시 네트워크 → 재시도)
-- 회복 실패 시: "**무엇이 안 됐는지** + **개발자에게 보여주실 메시지**" 두 줄로 요약 제공
-- 자세한 회복·번역 로직은 `error-translator` Skill에 위임 — 이 Skill은 *위임 진입점*만
+- 자동 회복 시도가 먼저 (의존성 누락 → 설치, 포트 충돌 → 다른 포트, 일시 네트워크 → 재시도)
+- 회복 실패 시 "**무엇이 안 됐는지** + **개발자에게 보여주실 메시지**" 두 블록. 회복·번역 본체는 `error-translator` — 이 Skill은 *위임 진입점*만.
 
-상세 회복 매트릭스는 `~/.claude/CLAUDE.md` §에러는 적극 자동 회복 우선 참조 (전역 켠 사용자) 또는 `./CLAUDE.project.md` §페르소나 요약 (전역 거부 사용자).
+### 2. 새 대화 권유 자가 점검 진입점
 
-### 2. 새 대화 권유 자가 점검 → fresh-session-guide 위임
+*큰 흐름 마무리·세션 무거움* 감지 시 `fresh-session-guide` 호출 — 4조건 AND 게이트는 `fresh-session-guide/SKILL.md` §1.5.
 
-자가 점검 로직 자체는 `fresh-session-guide` Skill §1 책임. 이 Skill은 *큰 흐름 마무리·세션 무거움*을 감지하면 `fresh-session-guide` 자가 점검을 *호출하는 진입점*으로만 동작.
+### 3. 맥락 전환·완결 감지 시 저장 자연 권유
 
-세부 4조건 AND 게이트는 `fresh-session-guide/SKILL.md` §1.5 참조.
+휴리스틱 yes일 때 본 응답 *앞*에 1줄 자연 권유. 강제 X, 무시하면 그대로 진행. *결정론적 트리거 X — AI 자율 판단*.
+
+휴리스틱:
+- 다른 영역으로 전환 의도 ("다음은", "이제는", "그럼 다른 화면", "다른 컴포넌트 만들자")
+- 완결성 신호 ("끝났어", "다 됐어", "이거 됐다", 컴포넌트·화면 1개 완성 시점)
+
+권유 패턴:
+> 방금 만든 <X> 먼저 저장해두실래요? "**저장해줘**" 한 마디면 돼요. 아니면 그대로 진행할게요.
+
+직전 응답에서 같은 권유 박았다면 *연속 권유 X* — 다음 맥락 전환까지 침묵.
+
+### 4. commit 단위 의미 풀이 (세션 1회)
+
+`safe-save` 첫 성공 응답에 *한 번만* 비유 1줄. 잔소리 가드.
+
+- 트리거: `safe-save` 첫 성공 + state 파일에 `commit_meaning_shown` 키 미존재
+- 1회 노출 본문:
+  > 저장 시점(`commit`)은 *되감기 책갈피*예요. 너무 자주 만들면 책갈피끼리 비슷해지고, 너무 안 만들면 어디로 되감을지 모르게 돼요. *의미 묶음* 단위로 끊는 게 좋아요.
+- state 갱신: `${CLAUDE_PLUGIN_DATA}/sessions/<session_id>.json`의 `commit_meaning_shown: true` (`fresh-session-guide` 패턴 그대로). hook 미배포 환경이면 대화 메모리로 1회 가드.
 
 ## 응답 톤 검증 체크리스트
 
@@ -55,7 +72,7 @@ model: inherit
 - [ ] **영어 원문이 *단독*으로 등장한 곳은 없는가** (`백틱` + 한국어 병기 확인)
 - [ ] 사전에 없는 단어도 같은 형식으로 변환했는가 — 디자이너 *대화 상대*를 의식했는가
 - [ ] 비유에 "정확히는" 정의가 붙었는가
-- [ ] 마지막 줄에 다음 행동 *1개*가 있는가 (0개 또는 2개 X)
+- [ ] 마지막 줄에 다음 행동 *1개* + 그 행동을 트리거하는 *자연어 예시 1개*가 함께 있는가 (예: "이제 저장하시겠어요? — '**저장해줘**' 한 마디면 돼요"). 사전에 없는 행동도 같은 형식 적용.
 - [ ] '컴포넌트'·'자산'·'토큰' 같은 디자인 용어를 풀어 설명하지 않았는가
 - [ ] (해당 시) 새 대화 권유는 같은 세션 1회만 노출했는가
 
@@ -63,12 +80,13 @@ model: inherit
 
 ## 트리거 충돌 처리
 
-미학 결정 → `aesthetic-guard` / 토큰 변경 → `design-system-guard` / 부정 신호 누적 → `feedback-curator` / 새 대화 권유 자가 점검 → `fresh-session-guide`. 이 Skill은 *발화별 톤·에러 진입점*만. 전체 표는 `plugin/SCHEMA.md` §5.
+미학 결정 → `aesthetic-guard` / 토큰 변경 → `design-system-guard` / 부정 신호 누적 → `feedback-curator` / 새 대화 권유 자가 점검 → `fresh-session-guide`. 이 Skill은 *발화별 톤·에러 진입점 + 맥락 전환 저장 권유 + commit 의미 1회 풀이*만. 전체 표는 `plugin/SCHEMA.md` §5.
 
 ## Subagent 위임
 없음. 톤 가드는 메인 응답 직접 가공이 핵심이라 메인 모델 컨텍스트에서 작동(`model: inherit`).
 
 ## 의존
 - CLAUDE.md 레이어: `~/.claude/CLAUDE.md` §응답 스타일·§에러 자동 회복 (전역) / `./CLAUDE.project.md` §페르소나 요약 (전역 거부)
-- 다른 Skill: `error-translator`(에러 톤 위임 본체), `fresh-session-guide`(새 대화 권유 본체), 모든 디자인 발화별 Skill의 응답 톤 가드
+- 다른 Skill: `error-translator`(에러 톤 위임 본체), `fresh-session-guide`(새 대화 권유 본체), `safe-save`(§4 commit 의미 풀이 트리거 시점), 모든 디자인 발화별 Skill의 응답 톤 가드
+- 외부 자산: `${CLAUDE_PLUGIN_DATA}/sessions/<session_id>.json` (§4 1회 가드용 state, `commit_meaning_shown` 키)
 - 템플릿: `plugin/templates/CLAUDE.user.md` §응답 스타일, `plugin/templates/CLAUDE.project.md` §페르소나 요약

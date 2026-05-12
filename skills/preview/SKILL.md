@@ -8,7 +8,7 @@ description: |
   - "화면 켜줘"
 
   사용 시점: 디자이너가 만든 화면을 즉시 확인하고 싶을 때. 의존성·서버·브라우저 단계 자체를 의식하지 않게.
-model: haiku
+model: haiku  # CLAUDE.md §11 (b)(c) — 서버 프로세스 격리 + 정형 명령(lsof·dev·open)
 ---
 
 ## 목적

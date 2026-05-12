@@ -11,7 +11,7 @@ description: |
   - 종료: "이제 내려줘", "그만 보여줘도 돼", "공유 끝", "내려도 돼"
 
   사용 시점: 디자이너가 작업물을 *제3자(클라·동료·상사)에게 보여줄 의도*를 표현할 때. 단순 저장은 `safe-save`, 개발자 인계는 `export-handoff` (둘 다 발동 X 조건).
-model: sonnet
+model: inherit  # CLAUDE.md §11 — 의도 분류·도구 분기·trade-off 디자이너 친화 번역이 컨텍스트 의존 (11-G reframe, 기존 sonnet)
 ---
 
 ## 목적
@@ -298,10 +298,10 @@ D. 진짜 외부 공개
 
 ## Subagent 위임
 
-- **이 Skill 자체가 Sonnet Subagent로 동작** (`model: sonnet`) — 의도 분류·도구 분기·trade-off 안내, 중간 난이도 (PRD §12)
-- 내부 위임:
-  - `auto-validate` (Task tool, Haiku) — §4.1 빌드 검증
-  - `safe-save` (Task tool, Haiku) — §8.1 공유 시점 commit
+- **이 Skill 자체는 메인 모델 컨텍스트** (`model: inherit` — 11-G reframe, CLAUDE.md §11). 의도 4분류·trade-off 디자이너 친화 번역·도구 추천·민감정보 차단 결정은 *디자인·보안 컨텍스트 의존*이라 다운그레이드 위험
+- 내부 위임 (격리·정형 도구 사유 충족):
+  - `auto-validate` (Task tool, Haiku) — §4.1 빌드 검증 (§11 (b)(c))
+  - `safe-save` (Task tool, Haiku) — §8.1 공유 시점 commit (§11 (b)(c))
   - `error-translator` (메인 가로채기) — 검증·도구 인증·실행 실패 시
 - 책임 분리:
   - 이 Skill은 *공유 흐름 오케스트레이션*만. 빌드/commit은 위임.

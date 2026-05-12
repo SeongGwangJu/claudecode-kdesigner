@@ -14,6 +14,10 @@
 
 ## 디자인 시스템
 
+> 프로젝트 루트에 `DESIGN.md`(`https://getdesign.md/` 표준)가 있으면 *1순위 토큰 소스*로 자동 인식돼요. `/kdesigner:프로젝트시작`이 발견하면 `./CLAUDE.md`에 `@DESIGN.md` import 라인을 자동으로 박고, `aesthetic-guard`/`design-system-guard`도 그 파일을 단일 진실로 참조.
+>
+> DESIGN.md 갱신은 플러그인 책임 X — 사용자가 직접 갱신.
+
 <!-- kd:slot:design-philosophy -->
 ### 철학
 {{이 디자인이 추구하는 톤·결을 1~3줄}}
@@ -58,6 +62,26 @@
 - **아이콘**: {{lucide-react}}
 - **더미 데이터 위치**: `mock/`
 
+<!-- kd:slot:source-repo -->
+## 원본 레포 (자동 관리)
+> 이 섹션은 `import-existing` Skill이 전체 레포(A 분기) 가져올 때 자동 채워요. `design-sync` Skill이 본 레포 갱신분 가져올 때 *마지막 sync* 갱신.
+> 비 git 저장소거나 원본이 없으면 비워둠.
+
+- **원본 URL**: {{없음 / git@github.com:org/repo.git 또는 https://...}}
+- **branch**: {{main}}
+- **진단 시점 SHA**: {{없음 / abc1234}}
+- **마지막 sync 시점**: {{없음 / 2026-05-12 14:30, SHA `def5678`}}
+
+<!-- kd:slot:design-mode-config -->
+## 디자인 모드 설정 (자동 관리)
+> 이 섹션은 `import-existing` Skill이 *운영 레포 변환(A 분기, §3-D)* 시 자동 채워요. 운영 레포 변환을 안 했으면 비워둠.
+> 변환 핵심: prod 경계 코드(`middleware*`/`app/api/**`/`lib/**` 등)는 손대지 않고, 인증·API stub을 *별도 모듈*에 격리해 *컴포넌트 import 경로 차원에서만* 분기.
+
+- **토글 변수**: {{없음 / NEXT_PUBLIC_KD_DESIGN_MODE / VITE_KD_DESIGN_MODE / EXPO_PUBLIC_KD_DESIGN_MODE / KD_DESIGN_MODE}}
+- **mock 격리 경로**: {{없음 / mock/auth-stub.ts, mock/api-stubs/, lib/design-mode/}}
+- **dev 스크립트**: {{없음 / pnpm dev:kd-design}}
+- **환경변수 파일**: {{없음 / .env.kdesigner-design (commit됨, prod .env*과 분리)}}
+
 <!-- kd:slot:share-policy -->
 ## 공유 정책 (자동 관리)
 > 이 섹션은 `external-share` Skill이 첫 외부 공유 시 묻고 자동 갱신해요. 사용자가 직접 손대지 마세요.
@@ -65,6 +89,40 @@
 - **회사 프로젝트 여부**: {{미답변 / 예 / 아니오}}
 - **회사명 키워드** (민감정보 스캔용): {{없음 / 키워드 목록}}
 - **외부 도구 동의 이력**: {{없음 / 도구명 (날짜)}}
+
+<!-- kd:slot:publishing-boundary -->
+## 디자이너 작업 영역 경계 (개발자가 조정)
+> 이 섹션은 `publishing-guard` Skill의 *경계 정의*입니다 — 디자이너가 어디까지 손대도 안전한지를 *프로젝트별로* 표현해요.
+> `import-existing`이 A 분기(전체 레포 변환)에서 프레임워크 휴리스틱으로 기본값을 시드해요. 본 레포 구조가 다르면 *개발자가 직접 조정*해주세요.
+> 비어있으면 hook이 Next.js 기준 기본값(README "디자이너가 안전하게 작업할 영역" 표)을 적용합니다.
+
+### 허용 (디자이너가 자유롭게 손대도 OK)
+- `mock/**`
+- `lib/design-mode/**` (또는 `src/lib/design-mode/**`)
+- `asset/**`, `public/**`, `assets/**`
+- `components/**` (단 *props 시그니처 변경*은 가드가 동의 요청)
+- `app/**/*.{tsx,jsx}`, `pages/**/*.{tsx,jsx}` (단 `*/api/**` 제외)
+- `app/globals.css`, `styles/**`, `**/*.module.css`, `tailwind.config.*`
+- `.env.kdesigner-design`
+
+### 금지 (개발자 영역 — 가드가 PreToolUse에서 차단 + 동의 흐름)
+- `middleware.*` (요청 가로채기 영역)
+- `app/api/**`, `pages/api/**` (API 라우트, `api/mock/**` 제외)
+- `lib/**` (런타임 로직, `lib/design-mode/**` 제외)
+- `hooks/**` (커스텀 훅 데이터 흐름)
+- `stores/**`, `store/**` (전역 상태)
+- `config/navigation*`, `config/routes*` (라우팅 메타)
+- `package.json`, `tsconfig.*`, `.gitignore`, `.npmrc`, `.nvmrc`
+- `.env`, `.env.*` (`.env.kdesigner-design` 제외)
+
+### 패턴 가드 (디자이너 영역 *안*이라도 PostToolUse가 잡는 변경)
+- `interface ...Props` 또는 `type ...Props =` 줄 변경 — *컴포넌트 사용법*이 바뀜
+- `@/hooks`·`@/stores`·`@/lib/api` 새 import — *도메인 결합*
+- `useState`/`useEffect`/`useCallback`/`useMemo`/`useReducer` 신규 호출 — *데이터 흐름 추가*
+- `<Link>` 제거 — *접근성 회귀 가능*
+- 함수 본문 5+ 라인 동시 추가·제거 — *알고리즘 교체 가능성*
+
+> 위 패턴이 감지되면 `publishing-guard`가 (a) 격리 OK / (b) 격리 부족 / (c) 진짜 prod 영향 3분류로 톤 차별화해 안내해요. (c) + 명시 동의 시 다음 인계 회차 `HANDOFF.md`의 *⚠️ 디자인 외 변경 — 검토 필요* 섹션에 자동 기록.
 
 ## 폴더 규약
 - `asset/` — 이미지·아이콘·폰트 등 시각 자산
@@ -83,6 +141,17 @@
 | 이름 | 경로 | 핵심 props | variant |
 |---|---|---|---|
 | {{Button}} | {{components/Button.tsx}} | {{variant, size, disabled}} | {{primary / secondary / ghost}} |
+
+<!-- kd:slot:pages -->
+## 사용 가능한 페이지
+
+> 이 섹션은 *자동 관리*됩니다.
+> - 첫 생성: `import-existing` Skill §4.5 (라우트 정의 패턴 자동 탐지 — Next.js App/Pages, Vite+React Router, Expo, SvelteKit, Astro 등 프레임워크별 휴리스틱)
+> - 갱신: 신규 페이지 감지 시 `design-system-guard`가 자동 (계획)
+
+| 이름 | 파일 경로 | 라우트 | 역할 1줄 |
+|---|---|---|---|
+| {{대시보드}} | {{app/dashboard/page.tsx}} | {{/dashboard}} | {{로그인 후 첫 화면}} |
 
 ## 더미 데이터 규칙
 - 모든 가짜 데이터는 `mock/` 폴더에 분리

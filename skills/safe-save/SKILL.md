@@ -8,7 +8,7 @@ description: |
   - "올려줘", "원격에 올려줘"
 
   사용 시점: 디자이너가 작업 중간이나 마무리 시점에 저장 의도를 표현할 때. /임시저장도 /저장도 동일 모델, 차이는 메시지 정성·push 분기뿐.
-model: haiku
+model: haiku  # CLAUDE.md §11 (b)(c) — git 명령 컨텍스트 격리 + 정형 도구(diff·commit·push)
 ---
 
 ## 목적
@@ -118,6 +118,11 @@ git commit -m "<생성한 한국어 메시지>"
 
 push 동반 시:
 > **저장 + 원격 업로드**(`commit + push`)까지 끝났어요 — 다른 분도 이 작업을 받아볼 수 있어요.
+
+**보조 안내** — 저장 성공 응답 끝에 다음 자연어 1줄 (글로벌 §원칙 7, `designer-persona` §응답 톤 검증):
+> 이제 화면 확인하시려면 "**보여줘**", 마무리하셨으면 "**개발자한테 넘길 거 정리해줘**" 하시면 돼요.
+
+*commit 단위 의미 풀이* (첫 성공 1회) 책임은 `designer-persona` §처리 흐름 §4 — 호출 측에서 state 키(`commit_meaning_shown`)와 함께 처리.
 
 ## Subagent 위임
 - **이 Skill 자체가 Haiku Subagent로 동작** (`model: haiku`) — git diff 분석 + 한국어 메시지 생성 + 정형 commit/push, 모두 정형 입출력

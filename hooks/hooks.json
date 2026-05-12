@@ -1,5 +1,5 @@
 {
-  "description": "fresh-session-guide 양적 게이트 — SessionStart에 state 파일 초기화, PostToolUse(Bash + git commit)에 save_count 증가",
+  "description": "fresh-session-guide 양적 게이트(SessionStart state 초기화 + git commit 카운트) + publishing-guard 퍼블리싱 경계 가드(Pre/PostToolUse Edit|Write|MultiEdit, F2-#6)",
   "hooks": {
     "SessionStart": [
       {
@@ -12,6 +12,18 @@
         ]
       }
     ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/publishing-guard-pre.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Bash",
@@ -19,6 +31,16 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-bash.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/publishing-guard-post.sh",
             "timeout": 10
           }
         ]

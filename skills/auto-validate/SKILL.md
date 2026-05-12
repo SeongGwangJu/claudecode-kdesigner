@@ -8,7 +8,7 @@ description: |
   - "한번 돌려봐", "에러 없어?", "빌드 해봐"
 
   사용 시점: 저장 직전, 큰 작업 마무리. 텍스트 사소한 변경(레이블·문구만)엔 발동 X.
-model: haiku
+model: haiku  # CLAUDE.md §11 (b)(c) — 빌드·lint 격리 + 정형 scripts 호출 + 정형 출력
 ---
 
 ## 목적
