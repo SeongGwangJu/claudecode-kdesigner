@@ -1,13 +1,14 @@
 ---
 description: |
-  새 서비스 0→1 셋업. 빈 디렉토리에서 웹/앱 묻고 기본 추천 스택(웹: Tailwind+shadcn/ui+Next.js+TypeScript / 앱: Expo+NativeWind)으로 폴더 구조(`asset/`, `mock/`, `components/`) 생성, `CLAUDE.project.md` placeholder 채워넣기, `package.json` scripts에 `lint`/`typecheck` 보장. 셋업 후 첫 화면을 띄울 수 있는 상태까지 만든다.
+  새 서비스 0→1 셋업. **사용자가 "새 디자인 시작" 의도를 명시한 후에만** 발동 — 빈 디렉토리 자체로는 발동 X (빈 디렉토리도 *기존 프로젝트 풀어놓기* 케이스가 있어 `/kdesigner:프로젝트시작` §5.1 의도 확인 질문이 먼저). 의도가 확정되면 웹/앱 묻고 기본 추천 스택(웹: Tailwind+shadcn/ui+Next.js+TypeScript / 앱: Expo+NativeWind)으로 폴더 구조(`asset/`, `mock/`, `components/`) 생성, `CLAUDE.project.md` placeholder 채워넣기, `package.json` scripts에 `lint`/`typecheck` 보장. 셋업 후 첫 화면을 띄울 수 있는 상태까지 만든다.
 
   발동 예시 (사용자 자연어):
   - "새 디자인 시작할게", "새로 만들고 싶어"
   - "처음부터 만들어줘", "빈 곳에서 시작"
   - "프로젝트 새로 셋업해줘"
+  - `/kdesigner:프로젝트시작` §5.1 의도 확인에서 "새 디자인 시작" 선택
 
-  사용 시점: 빈 디렉토리 또는 명시적으로 "새로 시작" 의도가 있을 때. 기존 코드가 이미 있으면 `import-existing`이 우선.
+  사용 시점: 사용자가 *명시적으로 "새로 시작" 의도*를 표현했을 때. 빈 디렉토리 단독 조건으로는 발동 X — 그 자리는 의도 확인 질문이 차지. 기존 코드가 이미 있으면 `import-existing`이 우선.
 model: inherit  # CLAUDE.md §11 — 0→1 미학 결정·DESIGN.md 분기·placeholder 시드가 디자인 컨텍스트 의존 (11-G reframe, 기존 sonnet)
 ---
 
@@ -17,8 +18,11 @@ model: inherit  # CLAUDE.md §11 — 0→1 미학 결정·DESIGN.md 분기·plac
 ## 발동 조건
 
 ### 발동
-- "새 디자인 시작"/"새로 만들고 싶어"/"처음부터 만들어줘" 류 자연어
-- `/kdesigner:프로젝트시작` 직후 빈 디렉토리 감지 시 자연 권유
+- "새 디자인 시작"/"새로 만들고 싶어"/"처음부터 만들어줘" 류 *명시적* 자연어
+- `/kdesigner:프로젝트시작` §5.1 의도 확인 질문에서 "**새 디자인 시작**" 선택
+
+### 발동 X (빈 디렉토리만으로는 발동 안 함)
+- *빈 디렉토리 단독 조건*으로는 발동 X — 빈 디렉토리도 "기존 프로젝트 풀어놓기" 케이스가 있어 `/kdesigner:프로젝트시작` §5.1 의도 확인 질문이 먼저 떠야 함. 사용자가 거기서 "새 디자인 시작"을 명시 선택한 *뒤*에만 발동.
 
 ### 발동 X
 - 기존 코드가 이미 있는 디렉토리 (`package.json` 또는 `components/` 존재) → `import-existing` 우선
