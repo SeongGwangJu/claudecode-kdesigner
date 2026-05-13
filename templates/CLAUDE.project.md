@@ -75,12 +75,22 @@
 <!-- kd:slot:design-mode-config -->
 ## 디자인 모드 설정 (자동 관리)
 > 이 섹션은 `import-existing` Skill이 *운영 레포 변환(A 분기, §3-D)* 시 자동 채워요. 운영 레포 변환을 안 했으면 비워둠.
-> 변환 핵심: prod 경계 코드(`middleware*`/`app/api/**`/`lib/**` 등)는 손대지 않고, 인증·API stub을 *별도 모듈*에 격리해 *컴포넌트 import 경로 차원에서만* 분기.
+> 변환 핵심: prod 경계 코드(`middleware*`/`app/api/**`/`lib/**` 등)는 손대지 않고, 인증·API stub을 *별도 모듈*에 격리해 *컴포넌트 import 경로 차원에서만* 분기. 격리만으로 못 막는 *디자이너 화면 앞 에러 노출*은 별도 차단 레이어가 흡수.
 
+### 기본 셋업
 - **토글 변수**: {{없음 / NEXT_PUBLIC_KD_DESIGN_MODE / VITE_KD_DESIGN_MODE / EXPO_PUBLIC_KD_DESIGN_MODE / KD_DESIGN_MODE}}
 - **mock 격리 경로**: {{없음 / mock/auth-stub.ts, mock/api-stubs/, lib/design-mode/}}
 - **dev 스크립트**: {{없음 / pnpm dev:kd-design}}
 - **환경변수 파일**: {{없음 / .env.kdesigner-design (commit됨, prod .env*과 분리)}}
+
+### 에러 노출 차단 레이어 셋업 상태
+> 디자이너 화면 앞 *완충층*. `import-existing` §3-D §6에서 프로젝트 스택을 보고 카테고리별 셋업 여부를 자율 결정한 결과를 *방향 표현*으로 누적해요 (특정 라이브러리·함수명은 박지 않음 — 인계 시 개발자가 *무엇이 차단되고 있는지*만 한눈에).
+
+- **페이지 단위 Error Boundary 자연 진입**: {{미셋업 / 디자인 모드일 때만 활성 (위치 1줄)}}
+- **dev 시점 에러 표시 비활성** (프레임워크 풀스크린 오버레이·HMR 빨간 박스 등): {{미셋업 / 디자인 모드 때 노출 차단}}
+- **데이터 fetching 결과의 silent fallback**: {{미셋업 / 해당 사항 없음(스택에 fetching 레이어 없음) / wrapper 활성 (위치 1줄)}}
+- **schema validation의 디자인 모드 분기**: {{미셋업 / 해당 사항 없음(스택에 schema 레이어 없음) / 실패 시 빈/기본 형태 폴백}}
+- **셋업 통과 신호**: {{미확인 / 첫 페이지 진입에서 영어 스택트레이스 노출 없이 화면 도달 확인}}
 
 <!-- kd:slot:share-policy -->
 ## 공유 정책 (자동 관리)

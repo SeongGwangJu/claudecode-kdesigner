@@ -66,6 +66,33 @@
 
 진실 위치: `plugin/templates/CLAUDE.project.md`.
 
+### 2.3 슬롯 회전 정책 — 자동 누적 슬롯의 archive 패턴
+
+> `CLAUDE.project.md`는 `./CLAUDE.md`의 `@CLAUDE.project.md` import로 *매 새 대화마다 자동 로드*된다. 자동 누적 슬롯이 무한히 자라면 매 세션 시작 토큰 비용도 무한 증가(이슈 #8). 갱신 주체 Skill이 *갱신 시점에 자율 회전*하는 결로 흐름을 끊지 않으면서 분량을 통제한다.
+
+**대상 슬롯** (§2.2 표의 *자동 관리/자동 갱신* 카테고리 중 *데이터가 시간순/카운트형으로 누적*되는 슬롯):
+
+| 슬롯 ID | 갱신 주체 Skill | 갱신 위치 |
+|---|---|---|
+| `last-work` | `fresh-session-guide` | §3 (사이클 마무리 시 1줄 append) |
+| `share-history` | `external-share` | §8.2 append, T3은 상태만 갱신(회전 X) |
+| `components` | `import-existing`(초기) + `design-system-guard`(후속) | 초기 일괄·후속 신규/변경 시 |
+| `pages` | `import-existing`(초기) + `design-system-guard`(후속 — 신규 페이지 감지) | 초기 일괄·후속 신규 시 |
+
+**회전 결** (갱신 주체 Skill이 갱신 시점에 자율 실행):
+
+1. 갱신 직후 슬롯 본문 분량을 확인. *디자이너가 한눈에 훑을 만한 분량* 초과면 회전.
+2. 가장 오래된 항목 일부를 `.claude/slot-archive/<슬롯 ID>.md`로 추출 — 최신 순 1줄씩 append (`export-handoff` `handoff/INDEX.md` 패턴 응용).
+3. archive 파일 첫 생성 시 `.claude/slot-archive/` 디렉토리도 함께 생성. `.gitignore`엔 *추가 X* — 디자이너가 commit해 다른 컴퓨터에서도 이어볼 수 있게.
+4. archive 파일은 `./CLAUDE.md`의 `@import` 라인에 *추가 X* — 자동 로드 회피가 회전의 핵심. 디자이너가 *이력 보고 싶어* 발화하거나 모델이 컨텍스트상 필요해지면 그때 직접 Read.
+5. archive 안에서 *재회전 X* — 한 슬롯의 archive가 천 줄 넘는 케이스는 비현실적이고, archive는 자동 로드 X라 더 이상 토큰 비용 누적 X.
+
+**분량 기준은 *방향 표현*만 박고 고정 N은 박지 X**. 슬롯 성격이 다르기 때문 — `last-work`는 시간순 1줄씩이라 짧게(수 줄~수십 줄), `components`/`pages`는 인덱스성이라 더 길어도 한눈 가독성 유지(수십 줄 후반). 갱신 주체 Skill이 갱신 시점에 슬롯 본문을 보고 자율 결정 (메타 원칙 — CLAUDE.md §원칙 12 범용성: 고정 수치는 환경·프로젝트에 fit되어 케이스 다양성을 못 따라옴).
+
+**디자이너 노출**: *첫 archive 파일 생성 시 1회만* 갱신 주체 Skill이 안내("이전 항목은 `.claude/slot-archive/<슬롯>.md`로 옮겨두었어요 — 새 대화에선 자동으로 로드되지 않아 가벼워졌고, 보고 싶을 때 *이전 이력 보여줘* 한 마디면 돼요"). 이후 회전은 침묵 — `fresh-session-guide` 권유와 같은 톤(잔소리 X).
+
+**자급식 manifest 원칙** (§7) — 이 정책의 자급 사본을 각 갱신 주체 Skill 본문(§3·§8.2·§3·§4.1/§4.5)에 *짧은 방향 단락*으로 박는다. 갱신 시점에 외부 Read 없이 자율 동작. SCHEMA.md는 *작업자 교차 검증용 정본*.
+
 ---
 
 ## 3. `package.json` scripts 표준 키 (auto-validate 인터페이스)

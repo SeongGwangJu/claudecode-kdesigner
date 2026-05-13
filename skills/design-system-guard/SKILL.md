@@ -79,6 +79,16 @@ model: inherit
 2. `## 사용 가능한 컴포넌트` 섹션 위치 찾기
 3. 변경된 컴포넌트 라인 갱신/추가 (`Edit`)
 4. 섹션 부재 시 → 헤더만 만들고 현재 컴포넌트 한 줄로 시작 (첫 일괄 생성은 `import-existing` 책임)
+5. **회전 검사** — append/edit 직후 컴포넌트 표 본문이 *디자이너가 한눈에 훑을 만함*을 넘었으면 가장 오래된 행들(또는 *덜 자주 쓰이는* 베이스 외 항목)을 `.claude/slot-archive/components.md`로 *최신 순 append*하고 슬롯 표에선 그 행 제거. archive 파일·디렉토리 부재 시 함께 생성. archive는 `./CLAUDE.md` `@import`에 미추가(자동 로드 X — 이슈 #8 해소의 핵심). 첫 archive 생성 시 디자이너에게 1회 안내("자주 안 쓰는 컴포넌트 일부는 `.claude/slot-archive/components.md`로 옮겨두었어요 — 보고 싶을 때 *이전 컴포넌트 목록 보여줘* 한 마디면 돼요"), 이후 침묵. 컴포넌트 인덱스는 *조회성*이라 `last-work`/`share-history`보다 *더 긴 분량*까지 한눈 가독성 유지 가능 — 분량 기준은 갱신 시점 자율(고정 N 박지 X). 정본: `plugin/SCHEMA.md` §2.3.
+
+### 3.1 페이지 인덱스 후속 갱신 (`pages` 슬롯)
+
+신규 페이지 감지 시 `CLAUDE.project.md`의 `## 사용 가능한 페이지` 섹션을 동기화 — `import-existing` §4.5가 초기 일괄 생성한 결을 *후속*에서 같은 형식·갱신 절차로 이어받는다. 신규 페이지 감지 신호:
+- `Glob`이 *디자이너가 첫 화면 시점에 박은 라우트 파일* 추가를 보여주거나
+- 사용자 발화에 "새 화면", "프로필 페이지", "랜딩" 등 라우트 생성 의도가 보이거나
+- `aesthetic-guard`/`new-service`가 페이지 파일을 새로 만든 직후
+
+처리 절차는 §3 컴포넌트와 동일 패턴 (Read → 섹션 위치 → 라인 추가/갱신 → 회전 검사). 라인 형식은 `import-existing` §4.5.2 그대로 (`이름 · 파일 경로 · 라우트 · 역할 1줄`). 회전 archive는 `.claude/slot-archive/pages.md`.
 
 ## Subagent 위임
 없음. 변경 분류·맥락 판단·동의 흐름은 메인 모델에서 직접 한다 (`model: inherit`). PRD §12 라우팅 표 일치.

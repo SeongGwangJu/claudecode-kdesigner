@@ -17,6 +17,12 @@ extract_field() {
   fi
 }
 
+# 0) K디자이너 활성 가드 (이슈 #1) — 글로벌 install false positive 차단.
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+if [ ! -f "$PROJECT_DIR/CLAUDE.project.md" ] && [ "${KDESIGNER_ACTIVE:-}" != "1" ]; then
+  exit 0
+fi
+
 FILE_PATH="$(extract_field 'tool_input.file_path')"
 [ -z "${FILE_PATH:-}" ] && exit 0
 
@@ -61,24 +67,28 @@ ADDED="$(echo "$DIFF" | grep -E '^\+[^+]' || true)"
 REMOVED="$(echo "$DIFF" | grep -E '^-[^-]' || true)"
 
 # 패턴 탐지 (CLAUDE.md §12 — 범용 표현, 특정 파일·hash 종속 X)
-SIGNALS=""
-add_signal() { SIGNALS="${SIGNALS}${SIGNALS:+, }$1"; }
+# SIGNALS_KIND — *기계 가독 토큰*만 누적. 친화 풀이는 hook에 박지 X(룰 기반 회피) —
+#                모델이 SKILL.md 원칙대로 그때그때 컨텍스트 보고 자율 가공.
+SIGNALS_KIND=""
+add_signal() {
+  SIGNALS_KIND="${SIGNALS_KIND}${SIGNALS_KIND:+,}$1"
+}
 
 if echo "$ADDED" | grep -qE '(interface[[:space:]]+\w+Props|type[[:space:]]+\w+Props[[:space:]]*=)'; then
-  add_signal "props 시그니처 변경"
+  add_signal "props-signature"
 fi
 if echo "$ADDED" | grep -qE "from[[:space:]]+['\"]@/(hooks|stores|store|lib/api|api)/"; then
-  add_signal "도메인 hook·store import 신규"
+  add_signal "domain-import"
 fi
 if echo "$ADDED" | grep -qE '\b(useState|useEffect|useCallback|useMemo|useReducer)\b[[:space:]]*[(<]'; then
-  add_signal "상태 흐름 hook 신규"
+  add_signal "state-hook"
 fi
 if echo "$REMOVED" | grep -qE '<Link\b'; then
-  add_signal "<Link> 제거 (접근성 회귀 가능)"
+  add_signal "link-removed"
 fi
 if echo "$ADDED" | grep -qE '!!|Boolean\('; then
   if echo "$REMOVED" | grep -qE '!!|Boolean\(' ; then : ; else
-    add_signal "boolean 변환 추가 (동작 동일한 정리)"
+    add_signal "boolean-cast"
   fi
 fi
 # active matching·sort·format 알고리즘 교체 휴리스틱: 함수 본문 5+ 라인 추가·제거 동시 발생
@@ -86,13 +96,13 @@ ADDED_COUNT=$(echo "$ADDED" | grep -cE '^\+' || true)
 REMOVED_COUNT=$(echo "$REMOVED" | grep -cE '^-' || true)
 if [ "$ADDED_COUNT" -ge 5 ] && [ "$REMOVED_COUNT" -ge 5 ]; then
   if echo "$DIFF" | grep -qE '(function[[:space:]]+\w+|const[[:space:]]+\w+[[:space:]]*=[[:space:]]*\(.*\)[[:space:]]*=>)'; then
-    add_signal "함수 본문 교체 (알고리즘 변경 가능성)"
+    add_signal "function-replaced"
   fi
 fi
 
-[ -z "$SIGNALS" ] && exit 0
+[ -z "$SIGNALS_KIND" ] && exit 0
 
-REASON="디자이너 영역 안 파일이지만 *디자인 외 영향* 패턴이 감지됐어요 (${REL}). publishing-guard Skill을 호출해 (a) 격리 OK / (b) 격리 부족 / (c) 진짜 prod 영향 분류로 사용자에게 톤 차별화해 안내하세요. (c)면 명시 동의 + handoff_review_queue push. 신호: ${SIGNALS}"
+REASON="publishing-guard 신호: 디자이너 영역 안 파일(${REL})에 *디자인 외 영향* 패턴 감지. 분류 토큰: ${SIGNALS_KIND}. publishing-guard Skill을 호출해 SKILL.md §3 원칙대로 디자이너 친화 톤으로 가공 — 분류 라벨·코드 용어 노출 X, *이 변경이 운영에서 어떤 영향을 줄 수 있는지*를 사용자 발화 맥락에 맞춰 풀어 안내, 1️⃣2️⃣3️⃣ 선택지(의도한 변경/시각만/취소)·되돌리기 안전망 포함. 사용자가 의도한 변경 택 시 §5 handoff_review_queue push."
 
 if command -v jq >/dev/null 2>&1; then
   jq -n --arg r "$REASON" '{

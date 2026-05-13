@@ -25,10 +25,19 @@ model: inherit
 
 응답 작성 직전 자가 점검. **AND 게이트** — 4조건 *모두* yes일 때만 권유. 하나라도 모호하면 권유 X.
 
+### 1.0 평가 발동 시점 — hook 신호 또는 보조 자연어 발화
+
+§1 평가는 *능동 매 턴 자가 점검*이 아니라 *신호가 들어왔을 때* 자연 깨어난다. 진입 경로 두 가지:
+
+- **hook 신호**: PostToolUse Bash 매처가 `git commit` 직후 `fresh-session-guide 신호: save_count=..., started_at=..., suggested=..., last_commit_message="..."` 형태의 원본 값을 *추가 컨텍스트*로 노출. 이 신호를 받으면 §1.1~§1.5 평가가 자연 발동. *hook은 판정·임계치 비교 X* — 원본 값만 노출하고, 평가는 SKILL이 책임. `publishing-guard` 가드 패턴과 같은 결.
+- **보조 자연어 발화** (description 예시 — "대화 길어졌나?"·"새 대화 열까?" 등): 디자이너가 직접 진입. 흔치 않음.
+
+발동 시점이 매 턴이 아니라 *commit이라는 자연 신호*에 묶여있어 잔소리 위험이 정밀 통제됨 — commit이 큰 사이클 closer일수록 §1.2 질적 게이트가 yes 가까워지고, 작은 작업 commit이면 §1.4 사용자 차단 게이트(흐름 한가운데·디버깅 중)가 평가 자체를 침묵으로 끌어내림.
+
 ### 1.1 양적 게이트 (둘 중 하나)
 
-- **hook state 분기**: hook이 박은 state 파일(`${CLAUDE_PLUGIN_DATA}/sessions/<session_id>.json`)이 *읽히고* `save_count >= 5` 또는 `now - started_at >= 1h`
-- **fallback 분기**: hook state 파일 *읽기 실패 시* (파일 부재 / `jq` 미설치 / 권한 실패) → 자가 카운트. 단, "분명히 3회 이상 commit이 있었다"고 *근거 인용 가능*할 때만 yes — 예: "직전 export-handoff 응답에서 commit 3개 sha를 확인했다", "사용자가 *저장해줘* 발화한 횟수가 3회 이상이고 각각 commit으로 이어졌다". 단순 추정·"느낌상" X.
+- **hook 신호 분기**: §1.0에서 받은 원본 값으로 평가 — `save_count >= 5` 또는 `now - started_at >= 1h` 중 하나라도 yes. 신호값을 *그대로* 비교(임계치 비교는 이 자리에서, hook은 원본만 노출). state 파일을 별도 Read해서 검증해도 동일.
+- **fallback 분기**: hook 신호 *부재* 또는 state 파일 읽기 실패 시 (파일 부재 / `jq` 미설치 / 권한 실패 / K디자이너 비활성 환경 — issue #1 정신상 hook 자체가 침묵) → 자가 카운트. 단, "분명히 3회 이상 commit이 있었다"고 *근거 인용 가능*할 때만 yes — 예: "직전 export-handoff 응답에서 commit 3개 sha를 확인했다", "사용자가 *저장해줘* 발화한 횟수가 3회 이상이고 각각 commit으로 이어졌다". 단순 추정·"느낌상" X.
 
 ### 1.2 질적 게이트 (모델 자가 판단, 하나 이상 yes + 근거 인용 가능)
 
@@ -84,6 +93,7 @@ model: inherit
    - 시간: `date "+%Y-%m-%d %H:%M"` (Bash)
    - 한 줄 요약: `export-handoff` 완료 시점이면 그 commit 메시지에서, 그 외엔 메인 모델이 사용자 발화·작업 흐름에서 한 줄 추출
 4. `Edit`으로 정확히 그 위치만 갱신 — 이전 줄·다른 섹션 절대 손대지 X
+5. **회전 검사** — append 직후 슬롯 분량이 *디자이너가 한눈에 훑을 만함*을 넘었으면 가장 오래된 줄들을 `.claude/slot-archive/last-work.md`로 *최신 순 append*하고 슬롯에선 그 줄 제거. archive 파일·`.claude/slot-archive/` 디렉토리 부재 시 함께 생성. archive는 `./CLAUDE.md` `@import`에 미추가 — 자동 로드 X(이슈 #8 해소의 핵심). 첫 archive 생성 시 디자이너에게 1회 안내("이전 작업 이력은 `.claude/slot-archive/last-work.md`로 옮겨두었어요 — 새 대화에선 자동 로드되지 않아 가벼워졌고, *이전 이력 보여줘* 한 마디면 다시 볼 수 있어요"), 이후 회전은 침묵. `last-work`는 시간순 1줄씩이라 *짧은 분량 기준*이 자연 — 정확한 줄 수는 갱신 시점 슬롯 본문 보고 자율 결정(고정 N 박지 X). 자세한 정책 정본: `plugin/SCHEMA.md` §2.3.
 
 ## 4. state 파일 갱신 (재권유 차단)
 

@@ -169,7 +169,17 @@ PRD §10 위험 + ROADMAP O-5: **1차에선 권유 메시지만**. 자동 생성
    - npm/pnpm: `dotenv -e .env.kdesigner-design -- <기존 dev 명령>` 또는 OS 분기 `<env_var>=1 <기존 dev>`
    - 안전한 fallback: `cross-env <var>=1 <기존 dev>` (cross-env 의존성 추가는 *AskUserQuestion 1회*로 동의)
 
-6. **prod 코드는 *손대지 X*** — 컴포넌트에서 인증·데이터 훅을 import하는 줄을 *명시 동의 후* 다음 패턴으로 변환:
+6. **에러 노출 차단 레이어 셋업** — 인증·API stub만으로는 *디자이너 화면에 영어 스택트레이스·빨간 박스가 새는 결*을 다 막지 못함. stub 응답이 실제 응답 형태와 어긋나거나, schema validation이 실패하거나, 컴포넌트가 undefined를 만나면 그대로 화면으로 흘러 디자이너 흐름이 끊긴다. 격리 모듈 옆에 *차단 레이어*를 같은 디자인 모드 전용 경로(`lib/design-mode/**` 또는 `mock/**`) 안에 함께 세워, prod 경계 코드는 손대지 않으면서 디자이너 화면 앞에 *완충층*을 둔다.
+
+   차단 *방향* (구체 라이브러리·함수·코드는 §1 진단에서 추론한 프레임워크·데이터 fetching·schema validation 스택을 보고 모델이 자율 선택. §1.3 라우트 휴리스틱과 같은 결):
+   - **페이지 단위 Error Boundary 자연 진입** — 디자인 모드일 때만 자동으로 두름. 컴포넌트 안에서 throw가 일어나도 디자이너 친화 빈/대체 상태로 폴백
+   - **dev 시점 에러 표시 비활성** — 프레임워크가 띄우는 풀스크린 에러 오버레이·HMR 빨간 박스 등이 디자인 모드에선 뜨지 않게. 프레임워크별 노출 메커니즘은 모델 추론
+   - **데이터 fetching 결과의 silent fallback** — 응답 미스매치·undefined·throw가 화면으로 새지 않게 wrapper에서 흡수. wrapper 자체는 *디자인 모드에서만* 활성, prod 경로엔 영향 X
+   - **schema validation의 디자인 모드 분기** — validation 실패가 throw로 이어지지 않게. 디자인 모드에선 빈/기본 형태로 폴백
+
+   각 차단은 *프로젝트 스택이 그 카테고리를 실제로 쓸 때만* 세움 — 없는 카테고리는 셋업 스킵. 디자이너가 첫 페이지 진입 시 영어 스택트레이스 노출 차단이 확인되는 게 셋업 통과 신호. 차단된 에러는 `error-translator`의 브라우저 런타임 경로로 자동 흘려 인지·기록(§9 결과 기록·`error-translator` 분류 표).
+
+7. **prod 코드는 *손대지 X*** — 컴포넌트에서 인증·데이터 훅을 import하는 줄을 *명시 동의 후* 다음 패턴으로 변환:
    ```ts
    // 기존: import { useAuth } from '@/hooks/useAuth'
    // 변환:
@@ -180,9 +190,9 @@ PRD §10 위험 + ROADMAP O-5: **1차에선 권유 메시지만**. 자동 생성
    ```
    → 변환 *전*에 `AskUserQuestion` ("이 컴포넌트가 인증 훅을 직접 호출해요. 디자인 모드에서 mock으로 분기할까요?"). 변환은 *컴포넌트 단위*로, *대량 일괄 변경 X*. 디자이너가 만질 페이지부터.
 
-7. **변경 *별도 commit*** — §7 끝나고 `safe-save` 위임 시 commit 메시지: *"디자인 모드 변환 — 인증·API stub 격리(`lib/design-mode/`·`mock/auth-stub.ts`·`mock/api-stubs/`), `dev:kd-design` 추가"*. 이후 컴포넌트 분기 변경은 *다음 commit*에서.
+8. **변경 *별도 commit*** — §7 끝나고 `safe-save` 위임 시 commit 메시지: *"디자인 모드 변환 — 인증·API stub 격리(`lib/design-mode/`·`mock/auth-stub.ts`·`mock/api-stubs/`), 에러 노출 차단 레이어, `dev:kd-design` 추가"*. 이후 컴포넌트 분기 변경은 *다음 commit*에서.
 
-8. **결과 기록** — `CLAUDE.project.md` §design-mode-config 슬롯에 박기 (§7 참조). §publishing-boundary 슬롯은 *템플릿 기본값 그대로* 두기(빈 골격) — 사용자/개발자가 본 레포 구조 보고 수정 가능. 기본값은 hook이 직접 적용하므로 비어있어도 가드 동작.
+9. **결과 기록** — `CLAUDE.project.md` §design-mode-config 슬롯에 박기 (§7 참조). 기본 셋업(토글·mock 경로·dev 스크립트·환경변수) 외에 *차단 레이어 셋업 상태*도 같은 슬롯에 자연 누적 — 어떤 카테고리(페이지 Error Boundary, dev 시점 오버레이 비활성, 데이터 fetching wrapper, schema validation 분기 등)가 실제로 셋업됐는지를 *방향 표현*으로 한 줄씩(특정 라이브러리명 박지 X). 인계 시 개발자가 *무엇이 격리됐고 무엇이 노출 차단됐는지* 한눈에 보이게. §publishing-boundary 슬롯은 *템플릿 기본값 그대로* 두기(빈 골격) — 사용자/개발자가 본 레포 구조 보고 수정 가능. 기본값은 hook이 직접 적용하므로 비어있어도 가드 동작.
 
 ### §4. 컴포넌트 스캔 + 인덱스 첫 생성
 
@@ -207,7 +217,7 @@ PRD §10 위험 + ROADMAP O-5: **1차에선 권유 메시지만**. 자동 생성
 - `UserAvatar` — `useAuth()` 의존. 미리보기 하려면 `mock/auth.ts`에 가짜 사용자 박아두는 게 안전.
 ```
 
-A 분기(§3-D 적용)면 이 섹션의 컴포넌트들이 *§3-D §6 변환 후보* — 디자이너 첫 작업 시 자연 권유.
+A 분기(§3-D 적용)면 이 섹션의 컴포넌트들이 *§3-D §6 차단 레이어가 흡수 + §7 분기 변환 후보* — 디자이너 첫 작업 시 자연 권유.
 
 ### §4.5 페이지 단위 스캔 + 인덱싱
 
@@ -233,6 +243,8 @@ A 분기(§3-D 적용)면 이 섹션의 컴포넌트들이 *§3-D §6 변환 후
 ```
 
 페이지 단위는 *디자이너 미리보기·작업 진입점* — `preview` Skill이 dev 서버 띄울 때 이 인덱스로 *어디부터 볼까* 권유.
+
+이 인덱스(컴포넌트·페이지)의 *후속 갱신·회전*은 `design-system-guard` §3(컴포넌트)·§3.1(페이지)로 위임 — 신규/변경 감지 시 자동 갱신, 슬롯 분량이 *디자이너가 한눈에 훑을 만함*을 넘으면 가장 오래된 항목을 `.claude/slot-archive/<슬롯>.md`로 회전(자동 로드 X). 이 Skill은 *초기 일괄 생성*까지만 책임, 자세한 회전 정책 정본: `plugin/SCHEMA.md` §2.3.
 
 ### §5. 디자이너 폴더 규약 추가
 
