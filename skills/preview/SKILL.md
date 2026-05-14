@@ -1,13 +1,5 @@
 ---
-description: |
-  화면 즉시 확인 — 의존성 설치(필요 시) + dev 서버 시작 + 브라우저 자동 오픈을 한 번에. 포트 충돌은 `error-translator`로 위임해 다른 포트 자동 재시도. Claude Desktop App 환경 우선 감안.
-
-  발동 예시 (사용자 자연어):
-  - "보여줘", "지금까지 작업 보여줘"
-  - "실행해줘", "한번 띄워봐"
-  - "화면 켜줘"
-
-  사용 시점: 디자이너가 만든 화면을 즉시 확인하고 싶을 때. 의존성·서버·브라우저 단계 자체를 의식하지 않게.
+description: 화면 즉시 확인 — 의존성 설치(필요 시) + dev 서버 시작 + 브라우저 자동 오픈을 한 번에, 포트 충돌은 `error-translator`로 위임해 다른 포트 자동 재시도. 디자이너가 만든 화면을 즉시 확인하고 싶을 때 — "보여줘"·"지금까지 작업 보여줘"·"실행해줘"·"한번 띄워봐"·"화면 켜줘" 같은 자연어 + `new-service` 셋업 직후 자동 호출. 의존성·서버·브라우저 단계 자체를 디자이너 시야에 등장 X.
 model: inherit  # CLAUDE.md §11 — Haiku 200k 한도가 import-existing 직후 *부모 컨텍스트 무거움*과 충돌(이슈 #3). 정형 명령만 보면 다운그레이드 정당화되나, 진입 자체가 막히면 가치 0이라 inherit 우선.
 ---
 
@@ -36,7 +28,7 @@ model: inherit  # CLAUDE.md §11 — Haiku 200k 한도가 import-existing 직후
 서버 살아있음 → 해당 포트 URL로 브라우저 오픈만 하고 §5로.
 
 ### 2. 의존성 설치 (필요 시)
-`node_modules` 부재 또는 `package.json` 변경 후 미설치 감지 시 자동 설치 (CLAUDE.md §8).
+`node_modules` 부재 또는 `package.json` 변경 후 미설치 감지 시 자동 설치.
 
 패키지 매니저 추론 (lockfile 기준):
 
@@ -100,7 +92,7 @@ Claude Desktop App 환경에서는 백그라운드 서버 + 외부 브라우저 
 > **3000번 통로**가 다른 작업에 쓰이고 있어서 **3001번 통로**로 바꿔서 띄웠어요 — `http://localhost:3001`
 
 ## Subagent 위임
-- **이 Skill 자체는 `inherit`** (CLAUDE.md §11)
+- **이 Skill 자체는 `inherit`**
   - 의존성 설치·서버 시작은 정형 명령이라 다운그레이드 후보였으나, `import-existing` 직후 호출되는 패턴이 흔해 *부모 컨텍스트(코드베이스 인덱싱 + 매뉴얼)가 Haiku 200k 한도를 넘기는 케이스*가 실측됨(이슈 #3).
   - Skill 진입 자체가 막히면 디자이너 흐름이 끊겨 *Skill 가치 0*. 정형 명령 다운그레이드 이득보다 진입 보장이 우선.
 - 포트 충돌·네트워크 오류는 `error-translator`로 위임 (메인 가로채기 + 자동 회복)
@@ -112,7 +104,15 @@ Claude Desktop App 환경에서는 백그라운드 서버 + 외부 브라우저 
 - `port`/`localhost` 등 영어 토큰은 한국어 병기 후 백틱
 - 서버 시작 중 진행 안내는 1줄로 — "준비 중이에요" 정도, 내부 단계 풀어 설명 X
 
+## 자가 점검
+
+호출 직전·실행 중 체크:
+- [ ] 의존성·서버·브라우저 단계 *디자이너 시야에 노출 X* — 한 자연어로 끝까지
+- [ ] 포트 충돌 시 `error-translator`로 다른 포트 자동 재시도
+- [ ] 브라우저 런타임 에러는 §5.5 모니터링으로 가로채 `error-translator`에 위임
+- [ ] dev 서버 살아있는 상태에서 빌드 트리거 X
+- [ ] 응답 끝 다음 행동 1개 + 트리거 자연어 1개
+
 ## 의존
 - 다른 Skill: `error-translator` (포트·네트워크·의존성 회복), `designer-persona` (톤), `new-service` (셋업 직후 호출)
 - 외부 도구: `Bash` (`lsof`, `ps`, 패키지 매니저, dev 서버, `open`/`xdg-open`/`start`), `Read` (`package.json`, lockfile)
-- 참조: PRD §5 preview, CLAUDE.md §8 에러 자동 회복

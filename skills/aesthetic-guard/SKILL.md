@@ -1,11 +1,5 @@
 ---
-description: |
-  화면·컴포넌트를 만들 때 발동되는 미학 가드. AI 클리셰(보라 그라디언트·이니셜 아바타·균등 카드 그리드·Inter 폰트 등)를 회피하고 한 방향 미학에 commit하게 한다.
-
-  발동 예시 (사용자 자연어):
-  - "랜딩 만들어줘" / "히어로 추가" / "프로필 페이지"
-  - "이미지 추가" / "아바타 박아줘" / "더미 데이터"
-  - 화면·시각 요소 *생성/변경* 의도가 보이는 모든 디자인 발화
+description: 화면·컴포넌트를 만들 때 발동되는 미학 가드 — AI 클리셰(보라 그라디언트·이니셜 아바타·균등 카드 그리드·Inter 폰트)를 회피하고 한 방향 미학에 commit하게 한다. 화면·시각 요소 *생성/변경* 의도가 보이는 모든 디자인 발화에 — "랜딩 만들어줘"·"히어로 추가"·"프로필 페이지"·"이미지 추가"·"아바타 박아줘"·"더미 데이터" 같은 자연어에 발동.
 model: inherit
 ---
 
@@ -48,6 +42,10 @@ model: inherit
 ### 5. AI-slop 회피 어휘·시각 패턴 카탈로그
 
 흔한 폰트 단독·보라 그라디언트·이니셜 박스·Lorem ipsum·한국어 슬롭 형용사·부제 동어반복 등 회피 카탈로그는 `${CLAUDE_SKILL_DIR}/references/ai-slop-vocab.md` 참조 — 출력 시작 전 *반드시 Read*.
+
+### 5.1 업계 일반 시각 안티패턴 (디폴트 회피 후보)
+
+shadcn 슬레이트 디폴트·Vercel/Linear 클론 결·이모지 헤딩·그라디언트 텍스트·균등 4-그리드 통계·한글에 Inter 단독·디자인 시스템 미정 상태 다크 모드 토글 등 *외부 검증 가능한 업계 클리셰* 7개 — 한 방향 commit 결정 시 디폴트 회피 후보로 [`${CLAUDE_SKILL_DIR}/references/anti-patterns.md`](./references/anti-patterns.md) 참조. *고정 차단 X* — 디자이너 의도가 그 결이면 그대로 진행.
 
 ## 이니셜 박스 회피 — 적극 분기 (브랜드 로고·아바타 공통)
 
@@ -130,11 +128,20 @@ model: inherit
 추가 마감 표준은 `${CLAUDE_SKILL_DIR}/references/finishing-checklist.md`를 *반드시 Read*해 통과시킨다 — 차원별 가드, 흔한 폰트 회피, 픽셀 정확성, 입력 라벨 연결 등.
 
 ## Subagent 위임
-없음. 메인 모델 컨텍스트에서 작동(`model: inherit`). 미학 결정은 메인 흐름 맥락이 필요해서 위임 X. PRD §12 라우팅 표 일치.
+없음. 메인 모델 컨텍스트에서 작동(`model: inherit`). 미학 결정은 메인 흐름 맥락이 필요해서 위임 X.
+
+## 자가 점검
+
+출력 직전 체크:
+- [ ] *한 방향에 commit* — 미니멀/맥시멀/에디토리얼 어중간 X
+- [ ] 본문 *고정 클리셰* 회피 — 보라 그라디언트·이니셜 박스 아바타·균등 카드 그리드·Inter 폰트 X
+- [ ] 컨텍스트 1순위(프로젝트 미학) → 2순위(기존 코드 시각 언어) → 보조(글로벌 자동 누적) 순으로 추출
+- [ ] 기존 UI에 *추가*면 화면 전체 시각 언어와 같은 결
+- [ ] `aesthetic-guard`가 *코드 출력 미학*만 본다 — 응답 톤은 `designer-persona`
 
 ## 의존
 - 다른 Skill: `designer-persona`(톤 가드, 이 Skill은 미학만), `design-system-guard`(토큰 일관성), `feedback-curator`(부정 신호 누적), `import-existing`/`new-service`(미학 컨텍스트 시드)
 - References: `references/finishing-checklist.md` (출력 직전 마감 표준), `references/ai-slop-vocab.md` (회피 어휘·질문 패턴)
 - 컨텍스트: `CLAUDE.project.md` 디자인 철학·레퍼런스·회피·토큰 (1순위), `~/.claude/CLAUDE.md` 미학 학습 자동 누적 슬롯 (보조)
 - 외부 도구: `WebFetch`(레퍼런스 분석, 디자이너 명시 시만), `Bash curl`(이미지 로컬 다운로드, 디자이너 확정 시), `AskUserQuestion`(부족 차원 묻기)
-- 참조: `plugin/SCHEMA.md` §5 트리거 충돌 처리, PRD §5 aesthetic-guard, §6 AI-slop 회피 원칙
+- 참조: `plugin/SCHEMA.md` §5 트리거 충돌 처리

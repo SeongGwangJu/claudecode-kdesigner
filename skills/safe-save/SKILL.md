@@ -1,13 +1,5 @@
 ---
-description: |
-  저장 — 임시저장도 진짜저장도 모두 commit 기반(stash 안 씀). 호출 직전 `auto-validate` 트리거 → 자연 한국어 commit 메시지 자동 생성 → push 여부 분기. 비파괴적 git 보장(`reset --hard`/`push --force`/`stash drop` 절대 X).
-
-  발동 예시 (사용자 자연어):
-  - "저장해줘", "지금까지 한 거 저장"
-  - "임시저장", "잠깐 저장만"
-  - "올려줘", "원격에 올려줘"
-
-  사용 시점: 디자이너가 작업 중간이나 마무리 시점에 저장 의도를 표현할 때. /임시저장도 /저장도 동일 모델, 차이는 메시지 정성·push 분기뿐.
+description: 저장 — 임시저장도 진짜저장도 모두 commit 기반(stash 안 씀). 호출 직전 `auto-validate` 트리거 → 자연 한국어 commit 메시지 자동 생성 → push 여부 분기. 비파괴적 git 보장(`reset --hard`·`push --force`·`stash drop` 절대 X). 작업 중간·마무리 시점 저장 의도 — "저장해줘"·"지금까지 한 거 저장"·"임시저장"·"잠깐 저장만"·"올려줘"·"원격에 올려줘" 같은 자연어 + 다른 Skill 흐름 마무리 단계에서 명시 호출. /임시저장도 /저장도 동일 모델, 차이는 메시지 정성·push 분기뿐.
 model: haiku  # CLAUDE.md §11 (b)(c) — git 명령 컨텍스트 격리 + 정형 도구(diff·commit·push)
 ---
 
@@ -45,7 +37,7 @@ git 추상화된 저장. 디자이너 화면에 `commit`/`push` 단어가 단독
 이 단계는 사용자에게 노출하지 않음(메타데이터 박기) — 응답에는 등장 X.
 
 ### 1. 변경 규모 판정 (auto-validate 발동 여부)
-저장 직전 검증을 *필요할 때만* 한다 (CLAUDE.md §9):
+저장 직전 검증을 *필요할 때만* 한다:
 
 | 변경 성격 | 검증 |
 |---|---|
@@ -78,7 +70,7 @@ git add -A     # 디자이너는 staging 개념 모름 — 기본은 전부
 git commit -m "<생성한 한국어 메시지>"
 ```
 
-비파괴 정책 (CLAUDE.md §3):
+비파괴 정책:
 - `git reset --hard`, `git push --force`, `git stash drop` 절대 X
 - `--amend`도 X (이미 push된 경우 위험) — 새 commit으로
 - stash 미사용 (저장 모델 통일)
@@ -100,7 +92,7 @@ git commit -m "<생성한 한국어 메시지>"
 2. `git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null` 로 원격 짝(upstream) 확인:
    - **성공**(이미 짝 있음) → `git push origin $BRANCH`
    - **실패**(짝 없음, 첫 push) → `git push -u origin $BRANCH` (자동 `-u`)
-3. force 류 X (CLAUDE.md §3 비파괴).
+3. force 류 X (비파괴).
 
 #### 응답 가공 (첫 push로 `-u` 적용된 경우)
 
@@ -119,7 +111,7 @@ git commit -m "<생성한 한국어 메시지>"
 push 동반 시:
 > **저장 + 원격 업로드**(`commit + push`)까지 끝났어요 — 다른 분도 이 작업을 받아볼 수 있어요.
 
-**보조 안내** — 저장 성공 응답 끝에 다음 자연어 1줄 (글로벌 §원칙 7, `designer-persona` §응답 톤 검증):
+**보조 안내** — 저장 성공 응답 끝에 다음 자연어 1줄 (`designer-persona` §응답 톤 검증):
 > 이제 화면 확인하시려면 "**보여줘**", 마무리하셨으면 "**개발자한테 넘길 거 정리해줘**" 하시면 돼요.
 
 *commit 단위 의미 풀이* (첫 성공 1회) 책임은 `designer-persona` §처리 흐름 §4 — 호출 측에서 state 키(`commit_meaning_shown`)와 함께 처리.
@@ -128,14 +120,22 @@ push 동반 시:
 - **이 Skill 자체가 Haiku Subagent로 동작** (`model: haiku`) — git diff 분석 + 한국어 메시지 생성 + 정형 commit/push, 모두 정형 입출력
 - 내부에서 `auto-validate` 추가 위임 (Task tool, Haiku) — 검증
 - 검증 fail 시 `error-translator`로 위임 (메인 가로채기)
-- PRD §12 라우팅 표 일치
 
 ## 응답 톤
 - 한국어, 응답 끝 다음 행동 1개 제안 (`designer-persona` 글로벌 원칙)
 - `commit`/`push` 단독 노출 X — 패턴: **저장** (`commit`), **원격 업로드** (`push`)
 - 다음 행동 예: "이제 화면 한번 보여드릴까요?" / "이제 점검 한번 돌려볼까요?"
 
+## 자가 점검
+
+호출 직전·실행 중 체크:
+- [ ] *호출 직전* `auto-validate` 트리거 (저장 직전 검증)
+- [ ] commit 메시지 *자연 한국어 1줄* 자동 생성 — diff 요약 기반
+- [ ] *비파괴* 보장 — `reset --hard`·`push --force`·`stash drop` 절대 X
+- [ ] "저장"은 commit만, "올려줘"는 commit + push — 사용자 발화 결대로
+- [ ] `commit`·`push` 단독 노출 X — **저장** (`commit`) 패턴
+- [ ] 응답 끝 다음 행동 1개
+
 ## 의존
 - 다른 Skill: `auto-validate` (호출 직전 검증), `error-translator` (검증 실패 회복), `designer-persona` (톤)
 - 외부 도구: `Bash` (`git status`/`add`/`commit`/`diff`/`remote -v`/`push` — 비파괴만), `Task` (auto-validate 위임), `AskUserQuestion` (push 분기)
-- 참조: PRD §5 safe-save, CLAUDE.md §3 비파괴적 git, §9 lint/build 트리거 조건

@@ -1,13 +1,5 @@
 ---
-description: |
-  저장 직전·큰 작업 마무리 시 자동 검증. **환경 인식 wrapper** — 직접 lint/build 명령 박지 X. 프로젝트 `package.json` scripts(`lint`/`typecheck`/`check`/`build`) 우선 호출, 없으면 일반 fallback. dev 서버 살아있으면 빌드 회피, lint·타입만. 결과는 정형 출력으로 호출 측 Skill에 반환.
-
-  발동 예시 (사용자 자연어):
-  - 다른 Skill (`safe-save` 등) 호출 직전 자동 트리거
-  - 큰 작업 (컴포넌트 추가, 구조 변경) 마무리 시
-  - "한번 돌려봐", "에러 없어?", "빌드 해봐"
-
-  사용 시점: 저장 직전, 큰 작업 마무리. 텍스트 사소한 변경(레이블·문구만)엔 발동 X.
+description: 저장 직전·큰 작업 마무리 시 자동 검증 — *환경 인식 wrapper*로 `package.json` scripts(`lint`/`typecheck`/`check`/`build`) 우선 호출, 없으면 일반 fallback. dev 서버 살아있으면 빌드 회피, lint·타입만. 다른 Skill(`safe-save` 등) 호출 직전 자동 트리거 + 큰 작업 마무리(컴포넌트 추가·구조 변경) 시 + "한번 돌려봐"·"에러 없어?"·"빌드 해봐" 같은 자연어. 텍스트 사소한 변경(레이블·문구만)엔 발동 X.
 model: haiku  # CLAUDE.md §11 (b)(c) — 빌드·lint 격리 + 정형 scripts 호출 + 정형 출력
 ---
 
@@ -29,7 +21,7 @@ model: haiku  # CLAUDE.md §11 (b)(c) — 빌드·lint 격리 + 정형 scripts �
 - `asset/` 자산 추가만
 - 사용자가 "그냥 넘어가" 명시
 
-판단 보조: 변경 라인 수·파일 종류·파일 개수로 *큰 작업*인지 추정 (CLAUDE.md §9).
+판단 보조: 변경 라인 수·파일 종류·파일 개수로 *큰 작업*인지 추정.
 
 ## 처리 흐름
 
@@ -94,14 +86,21 @@ errors:                     # fail 시에만
 - **이 Skill 자체가 Haiku Subagent로 동작** (`model: haiku`)
 - 호출 측 Skill (`safe-save` 등)이 메인 모델에서 `Task` tool로 본 Skill을 위임 호출
 - 본 Skill 내부에서 추가 위임 X — 단일 책임(검증 실행 + 정형 출력)
-- PRD §12 라우팅 표 일치
 
 ## 응답 톤
 - **사용자 직접 노출 X** — 정형 입출력만
 - 호출 측 Skill이 페르소나 톤으로 가공해 디자이너에게 전달
 
+## 자가 점검
+
+호출 직전·실행 중 체크:
+- [ ] `package.json` scripts 우선, 없을 때만 일반 fallback (직접 명령 박지 X — 환경 인식)
+- [ ] dev 서버 살아있으면 `build` 회피, `lint`·`typecheck`만
+- [ ] 정형 출력(`status: pass | fail | skipped`)로 호출 측에 반환
+- [ ] 사용자 직접 노출 0 — 호출 측 Skill이 가공
+- [ ] 실패 시 `error-translator` 분기 (호출 측 책임이지만 fail 정보는 전달)
+
 ## 의존
 - 다른 Skill: `safe-save`/`new-service`/`import-existing` (호출 측), `error-translator` (실패 시 호출 측이 위임)
 - 외부 도구: `Bash` (`lsof`, `ps`, `npm/pnpm/yarn/bun run`, `tsc`, `eslint`), `Read` (`package.json`, lockfile)
-- 셋업 의존: `new-service`가 `lint`/`typecheck` scripts를 박아두는 책임 짐 (CLAUDE.md §9)
-- 참조: PRD §5 auto-validate, CLAUDE.md §9
+- 셋업 의존: `new-service`가 `lint`/`typecheck` scripts를 박아두는 책임 짐
